@@ -2,13 +2,9 @@
 
 ## Purpose
 
-The Evidence Framework provides a structured, reproducible, and
-machine-readable representation of one security test execution.
+The Evidence Framework provides a structured, reproducible, and machine-readable representation of a completed security test execution in the Automotive Security Regression Lab.
 
-The evidence format defines the structured representation of a completed
-security test execution in the Automotive Security Regression Lab.
-
-Evidence provides a reproducible record of:
+An evidence record documents:
 
 ```text
 test_id
@@ -20,12 +16,11 @@ expected
 actual
 result
 notes
-````
+```
 
-The same evidence model is used for the existing security test scenarios and
-for the TC-003 regression workflow.
+The Evidence Framework is used by the implemented security test scenarios and regression test workflows.
 
-Evidence records the relationship between:
+Evidence records the relationship between a security test, its observed execution result, and the structured evidence derived from that result:
 
 ```text
 Security Test
@@ -37,14 +32,9 @@ Observation
 Evidence
 ```
 
-The framework documents what was tested, under which conditions, what was
-expected, what was actually observed, and whether the observed behavior
-matched the expected behavior.
+The framework documents what was tested, under which conditions, what was expected, what was actually observed, and whether the observed behavior matched the expected behavior.
 
-The evidence is generated exclusively from the simulated test environment.
-
-No real ECU data, production credentials, vehicle data, network traffic, or
-customer data is required.
+Evidence is generated exclusively from the simulated test environment. No real ECU data, production credentials, vehicle data, network traffic, or customer data is required.
 
 ## Evidence Model
 
@@ -66,33 +56,29 @@ result
 notes
 ```
 
-The required fields are:
+| Field | Description |
+| --- | --- |
+| `test_id` | Identifier of the security test associated with the execution |
+| `timestamp` | UTC timestamp of the evidence creation |
+| `target` | Test target against which the test was executed |
+| `preconditions` | Conditions established before execution |
+| `input` | Input used by the security test |
+| `expected` | Behavior expected by the test |
+| `actual` | Behavior actually observed |
+| `result` | Evidence result: `PASS` or `FAIL` |
+| `notes` | Additional execution context or observations |
 
-| Field           | Description                                       |
-| --------------- | ------------------------------------------------- |
-| `test_id`       | Identifier of the executed security test          |
-| `timestamp`     | UTC timestamp of the evidence creation            |
-| `target`        | Test target against which the test was executed   |
-| `preconditions` | Conditions that were established before execution |
-| `input`         | Input used by the security test                   |
-| `expected`      | Behavior expected by the test                     |
-| `actual`        | Behavior actually observed                        |
-| `result`        | Test execution result: `PASS` or `FAIL`           |
-| `notes`         | Additional execution context or observations      |
-
-The `test_id` identifies the test case associated with the execution.
+The `test_id` identifies the security test associated with the execution.
 
 The `timestamp` records when the evidence was generated.
 
 The `target` identifies the security target used for the execution.
 
-The `preconditions` record security-relevant conditions established before
-execution.
+The `preconditions` record security-relevant conditions established before execution.
 
 The `input` contains the request presented to the target.
 
-The `expected` value represents the security behavior defined by the test
-case.
+The `expected` value represents the security behavior defined by the test case.
 
 The `actual` value represents the response observed during execution.
 
@@ -100,12 +86,11 @@ The `result` represents the evaluated evidence result.
 
 The `notes` field provides additional execution context.
 
-The model is intentionally simple and can be extended later with optional
-fields such as `software_version`, `test_environment`, or `execution_id`.
+The model is intentionally simple. Optional fields such as `software_version`, `test_environment`, or `execution_id` may be considered for a later extension of the evidence model.
 
 ## Required Fields
 
-The following fields are mandatory:
+All fields of the current evidence model are mandatory:
 
 ```text
 test_id
@@ -119,10 +104,9 @@ result
 notes
 ```
 
-Evidence without the mandatory fields must not be treated as valid evidence.
+Evidence without the mandatory fields is not valid evidence.
 
-The Evidence Framework validates the required structure before evidence is
-accepted or serialized.
+The Evidence Framework validates the required structure before evidence is accepted or serialized.
 
 ## Timestamp
 
@@ -138,8 +122,7 @@ Example:
 
 Tests must not depend on a fixed timestamp.
 
-The timestamp is part of the execution evidence and identifies when the
-evidence record was generated.
+The timestamp is part of the execution evidence and identifies when the evidence record was generated.
 
 ## Result Semantics
 
@@ -170,13 +153,9 @@ expected != actual
 
 The observed behavior did not match the behavior expected by the test.
 
-A `FAIL` result does **not** by itself confirm a security vulnerability.
+A `FAIL` result documents a deviation between expected and observed behavior. The result alone does not establish a security vulnerability.
 
-It only documents that the observed behavior differed from the expected
-behavior.
-
-Security assessment, finding classification, root-cause analysis, and impact
-assessment are outside the scope of the Evidence Framework.
+Security assessment, finding classification, root-cause analysis, and impact assessment are outside the scope of the Evidence Framework.
 
 ## Evidence Generation
 
@@ -192,11 +171,9 @@ preconditions
 notes
 ```
 
-The expected and actual response values are derived from the executed test
-result.
+The expected and actual response values are derived from the executed test result.
 
-The evidence result is derived from the comparison of expected and actual
-behavior:
+The evidence result is derived from the comparison of expected and actual behavior:
 
 ```text
 expected == actual
@@ -212,16 +189,13 @@ expected != actual
 
 The generated evidence is validated before it is returned.
 
-The EvidenceGenerator therefore connects the executed security test result
-with the structured Evidence model.
+`EvidenceGenerator` therefore connects the executed security test result with the structured `Evidence` model.
 
-It does not independently execute the security test and does not implement
-the ECU security policy.
+The generator represents the result of test execution. Test execution itself remains the responsibility of the security test infrastructure, and ECU security policy remains the responsibility of the ECU simulation.
 
 ## Evidence Validation
 
-`Evidence.validate()` verifies the structural and semantic consistency of an
-evidence record.
+`Evidence.validate()` verifies the structural and semantic consistency of an evidence record.
 
 The validation includes:
 
@@ -233,8 +207,7 @@ timestamp is valid ISO-8601 with timezone information
 result matches the expected/actual comparison
 ```
 
-An evidence record is therefore considered valid only when its declared
-result is consistent with the recorded expected and actual behavior.
+An evidence record is valid when its declared result is consistent with the recorded expected and actual behavior.
 
 For example:
 
@@ -256,16 +229,13 @@ result   = PASS
 
 because the expected and actual values differ.
 
-An invalid evidence record causes evidence validation to fail and must not be
-treated as a valid evidence artifact.
+An invalid evidence record causes evidence validation to fail and is not treated as a valid evidence artifact.
 
 ## JSON Serialization
 
-Evidence can be converted into a JSON-compatible dictionary using
-`Evidence.to_dict()` and serialized using `Evidence.to_json()`.
+Evidence can be converted into a JSON-compatible dictionary using `Evidence.to_dict()` and serialized using `Evidence.to_json()`.
 
-Evidence can also be reconstructed from a dictionary using
-`Evidence.from_dict()`.
+Evidence can also be reconstructed from a dictionary using `Evidence.from_dict()`.
 
 Example:
 
@@ -287,15 +257,11 @@ Example:
 }
 ```
 
-The timestamp in an actual evidence record is generated at runtime and is not
-a fixed value.
+The timestamp in an actual evidence record is generated at runtime and is not a fixed value.
 
-JSON serialization provides a machine-readable representation that can later
-be consumed by automation or stored as a test artifact.
+JSON serialization provides a machine-readable representation that can be consumed by automation or stored as a test artifact.
 
-The Evidence Framework itself does not implement CI/CD orchestration.
-Phase 10 uses the existing Evidence Framework from the GitHub Actions
-workflow to generate and upload regression evidence.
+The Evidence Framework provides the evidence representation and serialization. CI/CD orchestration is implemented at the workflow level.
 
 ## Security Testing Context
 
@@ -329,7 +295,7 @@ This evidence documents the observed test result.
 
 It does not automatically create a security finding.
 
-The conceptual distinction is:
+The conceptual relationship is:
 
 ```text
 Security Test
@@ -350,10 +316,9 @@ Finding management is outside the scope of the Evidence Framework.
 
 The Evidence Framework is separated from the ECU simulation.
 
-The ECU remains the System Under Test and has no knowledge of evidence
-generation.
+The ECU remains the System Under Test and has no knowledge of evidence generation.
 
-The intended architecture is:
+The execution and evidence flow is:
 
 ```text
 Security Test Case
@@ -380,10 +345,34 @@ EvidenceGenerator
 Evidence
 ```
 
-The Evidence Framework consumes the result of test execution and represents
-the observation in a structured form.
+The Evidence Framework consumes the result of test execution and represents the observation in a structured form.
 
 It does not implement ECU security policy.
+
+The separation provides a clear responsibility boundary:
+
+```text
+Security Test Case
+    defines the test and expected behavior
+
+Security Test Runner
+    executes the test case
+
+ECU Adapter
+    connects the test infrastructure with the target
+
+ECU Simulator
+    implements the simulated ECU behavior
+
+TestResult
+    represents the execution result
+
+EvidenceGenerator
+    converts the execution result into evidence
+
+Evidence
+    stores the structured execution record
+```
 
 ## Determinism
 
@@ -399,20 +388,25 @@ random test data
 
 The Evidence Framework can therefore be tested locally and reproducibly.
 
-The current evidence generation is deterministic with respect to the test
-input, expected behavior, actual behavior, and explicitly supplied
-preconditions.
+Evidence generation is deterministic with respect to the test input, expected behavior, actual behavior, and explicitly supplied preconditions.
 
-The timestamp is intentionally runtime-generated and is the only
-time-dependent field in the evidence record.
+The timestamp is intentionally runtime-generated and is the time-dependent field in the evidence record.
 
-The current regression implementation uses the deterministic `ECUSimulator`
-as its target.
+The current regression implementation uses the deterministic `ECUSimulator` as its target.
 
-No external network communication or external ECU availability is required
-for the TC-003 evidence test.
+No external network communication or external ECU availability is required for the automated regression evidence tests.
 
-## Phase 4 Scope
+---
+
+## Historical Development of the Evidence Framework
+
+The following sections document how the existing Evidence Framework was introduced and subsequently reused by the security-test and regression implementation.
+
+The historical descriptions distinguish changes to the evidence model from later changes in how the existing model is used.
+
+## Phase 4 — Evidence Framework
+
+Phase 4 introduced the structured Evidence Framework.
 
 Implemented in Phase 4:
 
@@ -426,7 +420,9 @@ integration with the existing Phase 3 test result
 deterministic local evidence tests
 ```
 
-Not implemented in Phase 4:
+The Phase-4 implementation established the evidence model used by later security-test and regression workflows.
+
+The following capabilities were outside the Phase-4 implementation:
 
 ```text
 security finding management
@@ -441,11 +437,7 @@ real ECU communication
 real vehicle communication
 ```
 
-The Phase-4 scope describes the capability introduced in Phase 4.
-Later phases extend the use of the existing Evidence Framework without
-changing its fundamental evidence model.
-
----
+The Phase-4 scope describes the capability introduced at that point. Later phases extended the use of the existing Evidence Framework without changing its fundamental evidence model.
 
 ## Phase 5 — TC-001 Evidence Integration
 
@@ -496,15 +488,11 @@ which results in:
 result = FAIL
 ```
 
-The Evidence Framework does not determine whether the observed deviation
-constitutes a formal security finding.
+The Evidence Framework records the deviation. It does not determine whether the deviation constitutes a formal security finding.
 
-Phase 5 therefore extended the practical use of the Evidence Framework
-without changing its fundamental model or architectural boundary.
+Phase 5 therefore extended the practical use of the existing Evidence Framework without changing its model or architectural boundary.
 
 No separate evidence architecture was introduced for TC-001.
-
----
 
 ## Phase 6 — TC-002 Evidence Integration
 
@@ -516,8 +504,7 @@ TC-002 — Message Validation
 
 The existing Evidence Framework is reused for TC-002 executions.
 
-TC-002 verifies that invalid request structures or unsupported operations are
-rejected before security-relevant operation processing.
+TC-002 verifies that invalid request structures or unsupported operations are rejected before security-relevant operation processing.
 
 For a malformed or otherwise invalid request, the expected response is:
 
@@ -533,8 +520,7 @@ Actual   = INVALID_REQUEST
 Result   = PASS
 ```
 
-For an unsupported operation, the current simulator distinguishes the
-operation from a malformed request:
+For an unsupported operation, the current simulator distinguishes the operation from a malformed request:
 
 ```text
 Expected = UNSUPPORTED_OPERATION
@@ -542,38 +528,28 @@ Actual   = UNSUPPORTED_OPERATION
 Result   = PASS
 ```
 
-If the target returns a different response, the evidence records a failed
-comparison:
+If the target returns a different response:
 
 ```text
 Expected != Actual
 Result   = FAIL
 ```
 
-The `FAIL` represents an observed deviation from the message-validation
-requirement. It does not automatically constitute a formal security finding.
+The `FAIL` represents an observed deviation from the message-validation requirement. It does not automatically constitute a formal security finding.
 
-TC-002 uses the same evidence model and serialization mechanism established
-in Phase 4.
+TC-002 uses the same evidence model and serialization mechanism established in Phase 4.
 
 No separate evidence format is introduced for TC-002.
 
----
-
 ## Phase 7 — TC-003 Regression Evidence Integration
 
-Phase 7 introduces the TC-003 Regression Workflow.
+Phase 7 introduced the TC-003 Regression Workflow.
 
-TC-003 uses the existing Evidence Framework to represent the result of a
-regression retest.
+TC-003 describes the regression workflow used to reproduce the modeled vulnerable behavior, execute the secure retest, evaluate expected versus actual behavior, and verify the resulting evidence.
 
-It does not introduce a separate evidence model, evidence schema, or
-serialization mechanism.
+The Phase-7 regression workflow reuses the existing TC-001 `SecurityTestCase`. Therefore, the `SecurityTestCase.test_id` of the regression evidence remains `TC-001`.
 
-The regression test uses the existing TC-001 `SecurityTestCase` and the
-existing security test execution architecture.
-
-The regression workflow is:
+The Phase-7 execution flow is:
 
 ```text
 SecurityTestCase
@@ -594,10 +570,9 @@ Evidence
 Evidence.validate()
 ```
 
-The implemented TC-003 regression evidence test verifies that the generated
-evidence represents the executed secure retest.
+The implemented Phase-7 regression evidence test verifies that the generated evidence represents the executed secure retest.
 
-The regression test verifies, among other fields:
+The relevant evidence values are:
 
 ```text
 test_id       == TC-001
@@ -614,13 +589,11 @@ The generated evidence is then validated using:
 Evidence.validate()
 ```
 
-This demonstrates that TC-003 applies the existing evidence model to a
-regression execution.
-
 The controlled vulnerable-state reproduction is:
 
 ```text
 SecurityMode.VULNERABLE
+
 Authorization = false
 Operation = PROTECTED_OPERATION
 Expected = ACCESS_DENIED
@@ -634,14 +607,13 @@ The secure regression retest is:
 
 ```text
 SecurityMode.SECURE
+
 Authorization = false
 Operation = PROTECTED_OPERATION
 Expected = ACCESS_DENIED
 Actual = ACCESS_DENIED
 Result = PASS
 ```
-
-The regression evidence is generated from the executed `TestResult`.
 
 TC-003 also verifies that authorized behavior remains available:
 
@@ -653,20 +625,15 @@ Actual = ACCESS_GRANTED
 Result = PASS
 ```
 
-The TC-003 evidence workflow therefore records the secure regression retest
-and the authorized-behavior verification using the existing Evidence model.
+The TC-003 workflow therefore records the secure regression retest and authorized-behavior verification using the existing Evidence model.
 
-No separate evidence format is introduced for TC-003.
+No separate evidence model, schema, or serialization mechanism was introduced for TC-003.
 
 ## Evidence and Regression Evaluation
 
-Evidence records the result of the executed test.
+Evidence records the result of the executed test. It does not independently define the underlying security requirement.
 
-It does not independently determine whether the underlying security
-requirement is correct.
-
-For TC-003, the expected behavior is defined by the regression
-`SecurityTestCase` before execution.
+For the Phase-7 TC-003 regression workflow, the expected behavior is defined by the regression `SecurityTestCase` before execution.
 
 For the unauthorized protected operation:
 
@@ -680,23 +647,19 @@ ACCESS_DENIED
 
 The actual result is obtained from the ECU execution.
 
-The regression outcome is then determined by comparing expected and actual
-behavior.
+The regression outcome is determined by comparing expected and actual behavior.
 
 A `PASS` indicates that the expected security behavior was observed.
 
-A `FAIL` indicates that the observed behavior differs from the defined
-security expectation and requires investigation.
+A `FAIL` indicates that the observed behavior differs from the defined security expectation and requires investigation.
 
-A regression failure must not automatically be interpreted as proof of a new
-vulnerability.
+A regression failure is an observed deviation and is not by itself a formal vulnerability determination.
 
-## Traceability
+## Traceability and Test Identifiers
 
-Evidence preserves the relationship between the test definition and its
-execution result through the `test_id`.
+Evidence preserves the relationship between the test definition and its execution result through `test_id`.
 
-The intended relationship is:
+The general relationship is:
 
 ```text
 Security Finding
@@ -714,89 +677,77 @@ TestResult
 Evidence
 ```
 
-For the current TC-003 implementation, the regression workflow reuses the
-existing `TC-001` security-test identifier because the regression verifies
-the security property originally established by TC-001.
+The project contains two distinct uses of the `TC-003` identifier that must be kept separate.
 
-The `test_tc003_*` pytest function names identify the Phase-7 regression test
-functions. They do not change the `SecurityTestCase.test_id`.
+### Phase-7 Regression Workflow
 
-Therefore:
+In Phase 7, `TC-003` identifies the regression workflow itself.
+
+The workflow reuses the existing `TC-001` `SecurityTestCase` because the regression verifies the security property originally established by TC-001.
+
+The pytest function names identify the Phase-7 regression functions and do not change the `SecurityTestCase.test_id`.
+
+For example:
 
 ```text
 pytest test function:
+
 test_tc003_retest_confirms_secure_behavior
 
 SecurityTestCase.test_id:
+
 TC-001
 ```
 
-This distinction is intentional.
+The distinction is:
 
 ```text
 TC-003
-  = Regression Workflow
+  = Phase-7 regression workflow
 
 test_tc003_*
-  = pytest regression/lifecycle tests
+  = pytest regression/lifecycle test functions
 
 TC-001
-  = SecurityTestCase.test_id of the currently
-    regressed Diagnostic-Authorization property
+  = SecurityTestCase.test_id of the original
+    Diagnostic-Authorization security property
 ```
 
-TC-003 identifies the regression workflow, while TC-001 identifies the
-original security test case whose security property is being re-tested.
+### Phase-9 Automated Regression Suite
 
-The Phase-9 automated regression suite uses distinct regression
-`SecurityTestCase` instances with `test_id = TC-003`. This is separate from
-the Phase-7 lifecycle test described above and does not change the identity
-of the original TC-001 security property.
+Phase 9 introduced the automated regression suite in `04_tests/test_security_regression.py`.
 
-## Serialization
-
-Evidence can be converted into a JSON-compatible dictionary using
-`Evidence.to_dict()` and serialized using `Evidence.to_json()`.
-
-The serialized representation contains:
+The automated regression scenarios use distinct `SecurityTestCase` instances with:
 
 ```text
-{
-  "actual": "ACCESS_DENIED",
-  "expected": "ACCESS_DENIED",
-  "input": {
-    "operation": "PROTECTED_OPERATION"
-  },
-  "notes": "Retest confirms that unauthorized protected operation is denied.",
-  "preconditions": {
-    "authorization": false
-  },
-  "result": "PASS",
-  "target": "simulated-ecu",
-  "test_id": "TC-001",
-  "timestamp": "..."
-}
+test_id = TC-003
 ```
 
-The timestamp value is generated during execution and therefore varies
-between executions.
+In this context, `TC-003` is the identifier assigned to the automated regression test cases.
+
+This is a separate implementation detail from the Phase-7 lifecycle test. It does not change the identity of the original `TC-001` security test case used by the Phase-7 controlled regression workflow.
+
+The identifier usage can therefore be summarized as:
+
+```text
+Phase 7:
+
+TC-003 = regression workflow
+
+TC-001 = reused SecurityTestCase.test_id
+
+Phase 9:
+
+TC-003 = automated regression SecurityTestCase.test_id
+```
+
+This distinction preserves traceability without assigning two identities to the same `SecurityTestCase` instance.
 
 ## Current Evidence Framework Scope
 
-Following completion of Phase 7, the Evidence Framework supports evidence
-generation for the currently implemented security tests and the controlled
-TC-003 regression workflow:
+The current Evidence Framework provides one common evidence representation for the implemented security-test and regression execution paths.
 
-```text
-TC-001 — Diagnostic Authorization
-
-TC-002 — Message Validation
-
-TC-003 — Regression Workflow
-```
-
-Both security tests and the regression workflow use the same evidence
-structure:
+The evidence structure remains:
 
 ```text
 test_id
@@ -810,45 +761,45 @@ result
 notes
 ```
 
-TC-003 uses the existing TC-001 security-test definition for the Phase-7
-controlled regression lifecycle and does not introduce a separate evidence
-schema.
+The current project uses this structure with:
+
+```text
+TC-001 — Diagnostic Authorization
+
+TC-002 — Message Validation
+
+TC-003 — Automated Security Regression
+```
+
+The Phase-7 controlled regression workflow also uses the same evidence structure while reusing the `TC-001` `SecurityTestCase`.
 
 The evidence workflow is:
 
 ```text
 Security Test
-       |
-       v
+      |
+      v
 Test Execution
-       |
-       v
+      |
+      v
 TestResult
-       |
-       v
+      |
+      v
 EvidenceGenerator
-       |
-       v
+      |
+      v
 Evidence Model
-       |
-       v
+      |
+      v
 Evidence.validate()
-       |
-       v
+      |
+      v
 JSON
 ```
 
-The Evidence Framework therefore provides a common evidence representation
-across the implemented security-test set and the controlled regression
-workflow.
+Test-specific information is represented through the existing fields such as `test_id`, `preconditions`, `input`, `expected`, `actual`, and `notes`.
 
-The framework does not require a different evidence schema for each test
-case.
-
-Test-specific information is represented through the existing fields such as
-`test_id`, `preconditions`, `input`, `expected`, `actual`, and `notes`.
-
----
+The framework provides a common evidence representation across the implemented security-test and regression paths. It does not require a separate evidence schema for each test case.
 
 ## Current Evidence Examples
 
@@ -884,7 +835,7 @@ result   = FAIL
 
 ### TC-002 — Message Validation
 
-A conforming invalid-request test may produce:
+A conforming unsupported-operation test may produce:
 
 ```json
 {
@@ -904,12 +855,11 @@ A conforming invalid-request test may produce:
 }
 ```
 
-The timestamp shown in examples is illustrative. Actual evidence timestamps
-are generated at runtime.
+The timestamp shown in examples is illustrative. Actual evidence timestamps are generated at runtime.
 
-### TC-003 — Regression Workflow
+### TC-003 — Phase-7 Regression Lifecycle
 
-A successful secure regression retest may produce:
+A successful secure regression retest in the Phase-7 lifecycle may produce:
 
 ```json
 {
@@ -930,23 +880,17 @@ A successful secure regression retest may produce:
 }
 ```
 
-The `test_id` remains `TC-001` in this Phase-7 lifecycle example because
-TC-003 reuses the existing TC-001 security-test definition. TC-003 identifies
-the regression workflow, not a new security-test definition.
+The `test_id` remains `TC-001` in this Phase-7 lifecycle example because the workflow reuses the existing TC-001 `SecurityTestCase`.
 
-The generated evidence is subsequently validated using
-`Evidence.validate()`.
-
-The timestamp shown in the example is illustrative. Actual evidence
-timestamps are generated at runtime.
+The timestamp shown in the example is illustrative. Actual evidence timestamps are generated at runtime.
 
 ---
 
 ## Automated Regression Evidence
 
-The Evidence Framework is integrated into the automated security regression tests.
+The automated regression suite uses the existing Evidence Framework to record and validate evidence generated from executed regression test cases.
 
-This integration does not introduce a new evidence schema or a separate regression-specific evidence model. Instead, the existing `EvidenceGenerator`, `Evidence`, and validation mechanisms are used directly with executed regression test cases and their results.
+The integration uses the existing `EvidenceGenerator`, `Evidence`, and validation mechanisms. No regression-specific evidence schema is required.
 
 The automated regression tests verify two related properties:
 
@@ -979,31 +923,29 @@ EvidenceGenerator
 Evidence
 ```
 
-The generated evidence therefore represents an actually executed test scenario rather than a manually constructed result.
+The generated evidence therefore represents an executed test scenario.
 
 For the protected-operation regression scenario, the generated evidence contains:
 
 ```text
-test_id     = TC-003
-target      = simulated-ecu
-expected    = ACCESS_DENIED
-actual      = ACCESS_DENIED
-result      = PASS
+test_id = TC-003
+target = simulated-ecu
+expected = ACCESS_DENIED
+actual = ACCESS_DENIED
+result = PASS
 ```
 
 The execution context is recorded through the evidence preconditions:
 
 ```text
 authorization = false
-ecu_state     = READY
+ecu_state = READY
 security_mode = SECURE
 ```
 
-This makes the security condition under which the result was obtained explicit and reproducible.
+This records the security conditions under which the result was obtained.
 
-### Evidence Validation is Part of the Automated Test
-
-The regression test does not stop after checking the ECU response.
+### Evidence Validation in the Automated Test
 
 After evidence generation, the evidence object is explicitly validated:
 
@@ -1011,9 +953,7 @@ After evidence generation, the evidence object is explicitly validated:
 evidence.validate()
 ```
 
-This is significant because it verifies that the evidence itself satisfies the Evidence Framework rules.
-
-The automated test therefore covers both levels:
+The automated test therefore covers both the security behavior and the consistency of the resulting evidence:
 
 ```text
 Security behavior
@@ -1036,13 +976,13 @@ Evidence generation
 Evidence validation
 ```
 
-This establishes that a successful regression test produces evidence that is not only present, but also structurally and semantically valid.
+A successful regression test therefore verifies that the generated evidence is structurally and semantically valid.
 
 ### Evidence Represents the Secure Retest
 
 The regression evidence records the secure behavior that must remain preserved.
 
-For the protected-operation scenario, an unauthorized request is expected to produce:
+For the protected-operation scenario:
 
 ```text
 Expected: ACCESS_DENIED
@@ -1050,11 +990,11 @@ Actual:   ACCESS_DENIED
 Result:   PASS
 ```
 
-The evidence therefore documents the security property being verified:
+The evidence documents the security property being verified:
 
 > An unauthorized protected operation remains denied in secure ECU mode.
 
-The evidence does not itself reproduce the historical vulnerable behavior. Vulnerable behavior reproduction and secure retest comparison remain part of the controlled regression workflow. The automated regression suite verifies that the established secure behavior remains intact.
+The automated regression suite verifies the established secure behavior. Vulnerable behavior reproduction and secure retest comparison remain part of the controlled regression workflow.
 
 ### Explicit Execution Context
 
@@ -1067,126 +1007,56 @@ ecu = ECUSimulator(
 )
 ```
 
-Authorization and ECU state are then explicitly configured before execution.
+Authorization and ECU state are explicitly configured before execution.
 
 This provides test isolation and prevents state left by one scenario from influencing another scenario or its generated evidence.
 
-The resulting evidence can therefore be interpreted together with its recorded preconditions rather than relying on implicit simulator state.
+The resulting evidence can therefore be interpreted together with its recorded preconditions.
 
 ### Coverage of Evidence-Relevant Security Conditions
 
-The automated regression suite covers several established security properties whose results can be represented by the existing evidence model:
+The automated regression suite covers established security properties whose results can be represented by the existing evidence model:
 
-| Scenario                                 | Expected result         |
-| ---------------------------------------- | ----------------------- |
-| Unauthorized protected operation         | `ACCESS_DENIED`         |
-| Authorized protected operation           | `ACCESS_GRANTED`        |
-| Invalid message                          | `INVALID_REQUEST`       |
-| Unsupported operation                    | `UNSUPPORTED_OPERATION` |
-| Out-of-range boundary input              | `REQUEST_REJECTED`      |
-| Protected operation in blocked ECU state | `REQUEST_REJECTED`      |
+| Scenario | Expected result |
+| --- | --- |
+| Unauthorized protected operation | `ACCESS_DENIED` |
+| Authorized protected operation | `ACCESS_GRANTED` |
+| Invalid message | `INVALID_REQUEST` |
+| Unsupported operation | `UNSUPPORTED_OPERATION` |
+| Out-of-range boundary input | `REQUEST_REJECTED` |
+| Protected operation in blocked ECU state | `REQUEST_REJECTED` |
 
 The evidence-specific regression test additionally verifies that the secure unauthorized-operation scenario is represented correctly in the Evidence Framework.
 
-### No Evidence Schema Change
-
-The automated regression integration does **not** add new evidence fields.
-
-The existing evidence structure remains:
-
-```text
-test_id
-timestamp
-target
-preconditions
-input
-expected
-actual
-result
-notes
-```
-
-The extension is therefore in the **usage and verification of the existing model**, not in the model itself.
-
-The Evidence Framework is now exercised as part of an automated regression path:
-
-```text
-Execute regression scenario
-        |
-        v
-Obtain TestResult
-        |
-        v
-Generate Evidence
-        |
-        v
-Validate Evidence
-```
-
-This strengthens the traceability between executed security behavior and its recorded evidence without introducing a second evidence mechanism.
-
 ### Evidence and Security Finding Boundary
 
-Evidence remains supporting information for a security finding.
+Evidence remains supporting information for security assessment and finding documentation.
 
-The automated regression tests do not automatically create or update security findings. They verify established security properties and can generate evidence demonstrating the observed result.
+The automated regression tests verify established security properties and generate evidence demonstrating the observed result. Finding management, root-cause analysis, remediation information, and formal security assessment remain outside the Evidence Framework.
 
-The separation remains:
+The relationship remains:
 
 ```text
 Security Finding
-        |
-        v
+      |
+      v
 Security Property
-        |
-        v
+      |
+      v
 Regression Test
-        |
-        v
+      |
+      v
 TestResult
-        |
-        v
+      |
+      v
 Evidence
 ```
-
-Evidence documents the observed test result and execution context. It does not replace the finding, root-cause analysis, remediation information, or regression workflow.
-
-### Current Evidence Scope
-
-The current implementation supports:
-
-```text
-structured security-test evidence
-deterministic evidence generation
-explicit execution preconditions
-expected-versus-actual result recording
-PASS/FAIL semantics
-evidence validation
-JSON serialization and deserialization
-integration with TC-001, TC-002, and TC-003 security testing
-automated verification that regression evidence represents the executed secure retest
-```
-
-The current Evidence Framework does not provide:
-
-```text
-automated security-finding ingestion
-historical evidence comparison
-baseline management
-generalized regression orchestration
-automated remediation tracking
-```
-
-CI/CD evidence collection is implemented in Phase 10 at the workflow level by
-reusing the existing Evidence Framework. It does not constitute a new
-Evidence Framework capability or a change to the evidence schema.
 
 ---
 
 ## Phase 10 — CI/CD Evidence Integration
 
-Phase 10 integrates the existing automated Security Regression suite with
-GitHub Actions.
+Phase 10 integrates the existing automated Security Regression suite with GitHub Actions.
 
 The CI workflow is defined in:
 
@@ -1200,9 +1070,7 @@ The workflow executes the existing regression test logic from:
 04_tests/test_security_regression.py
 ```
 
-This file remains the Single Source of Truth for the Security Regression test
-logic. GitHub Actions does not introduce a second Security Regression test
-implementation.
+This file remains the Single Source of Truth for the Security Regression test logic. GitHub Actions executes the existing test implementation.
 
 The CI evidence chain is:
 
@@ -1224,6 +1092,7 @@ The workflow is configured for:
 
 ```text
 push
+
 pull_request
 ```
 
@@ -1252,13 +1121,11 @@ Evidence.to_json()
 Evidence Artifact Upload
 ```
 
-The Evidence Framework is therefore reused by CI rather than replaced by
-CI-specific evidence logic.
+The Evidence Framework is therefore reused by CI rather than replaced by CI-specific evidence logic.
 
 ### CI Evidence Generation
 
-Phase 10 generates six JSON evidence files from the automated regression
-execution.
+Phase 10 generates six JSON evidence files from the automated regression execution.
 
 The generated evidence files are:
 
@@ -1271,8 +1138,7 @@ TC-003_boundary_input.json
 TC-003_unexpected_state.json
 ```
 
-The evidence files are generated from the existing regression execution and
-serialized using the existing `Evidence.to_json()` mechanism.
+The evidence files are generated from the existing regression execution and serialized using the existing `Evidence.to_json()` mechanism.
 
 The resulting directory is:
 
@@ -1286,22 +1152,17 @@ The directory is uploaded by GitHub Actions as:
 security-regression-evidence
 ```
 
-This does not introduce a new evidence schema. The CI artifact contains the
-same structured Evidence JSON representation used by the existing Evidence
-Framework.
+The CI artifact therefore contains the same structured Evidence JSON representation used by the Evidence Framework.
 
 ### CI Success and Failure Handling
 
-The CI workflow separates the Security Regression test outcome from the
-availability of regression evidence.
+The CI workflow separates the Security Regression test outcome from the availability of regression evidence.
 
-The pytest step is allowed to fail normally so that a security regression
-failure causes the GitHub Actions job to fail.
+The pytest step is allowed to fail normally so that a security regression failure causes the GitHub Actions job to fail.
 
-Evidence generation and artifact upload are configured to execute with
-`always()`.
+Evidence generation and artifact upload are configured to execute with `always()`.
 
-The intended failure path is therefore:
+The failure path is therefore:
 
 ```text
 Security Regression Assertion
@@ -1317,8 +1178,7 @@ Evidence Artifact Upload
 
 This behavior was verified through a controlled CI failure test.
 
-A single Security Regression assertion was intentionally changed so that the
-expected status no longer matched the actual secure ECU response.
+A single Security Regression assertion was intentionally changed so that the expected status no longer matched the actual secure ECU response.
 
 The local result was:
 
@@ -1326,16 +1186,11 @@ The local result was:
 1 failed, 6 passed
 ```
 
-The corresponding GitHub Actions execution failed with exit code `1`, while
-the `security-regression-evidence` artifact was still generated and uploaded.
-
-This verifies that CI failure does not prevent the configured evidence path
-from producing an artifact.
+The corresponding GitHub Actions execution failed with exit code `1`, while the `security-regression-evidence` artifact was still generated and uploaded.
 
 ### Verified Successful CI Execution
 
-The push of commit `78c943f` to `main` triggered the GitHub Actions workflow
-and completed successfully.
+The push of commit `78c943f` to `main` triggered the GitHub Actions workflow and completed successfully.
 
 The verified execution was:
 
@@ -1359,8 +1214,7 @@ The SHA-256 digest of the generated artifact was:
 e337895fd207dbfdeb30358cef5194c6a895b3e0d8e72feae9896a591585503f
 ```
 
-The CI evidence artifact was therefore verified for the successful workflow
-execution.
+The CI evidence artifact was therefore verified for the successful workflow execution.
 
 ### Verified Controlled CI Failure
 
@@ -1391,9 +1245,7 @@ Artifact: security-regression-evidence
 Artifact size: 2.59 KB
 ```
 
-The failure demonstrates that the Security Regression assertion correctly
-causes the CI job to fail while the configured evidence generation and
-artifact upload path remains available.
+The failure demonstrates that the Security Regression assertion causes the CI job to fail while the configured evidence generation and artifact upload path remains available.
 
 The intentional test change was subsequently restored with:
 
@@ -1407,24 +1259,19 @@ The restored regression suite was locally verified with:
 7 passed in 0.06s
 ```
 
-The `main` branch remained unchanged at `78c943f` and was clean and
-synchronized with `origin/main`.
+The `main` branch remained unchanged at `78c943f` and was clean and synchronized with `origin/main`.
 
 ### CI Trigger Verification Status
 
-The `push` trigger has been verified through actual GitHub Actions executions,
-including the successful Run #1 and the controlled failure Run #2.
+The `push` trigger has been verified through actual GitHub Actions executions, including the successful Run #1 and the controlled failure Run #2.
 
-The `pull_request` trigger is configured in the workflow but has not yet been
-verified through a separate actual pull-request execution.
+The `pull_request` trigger is configured in the workflow but has not been verified through a separate actual pull-request execution.
 
-Therefore, the current Evidence Framework documentation does not treat a
-pull-request execution as a completed verification result.
+Therefore, a pull-request execution is not treated as a completed verification result.
 
 ### Technical CI Note
 
-GitHub Actions reported a Node.js 20 deprecation warning for the currently
-used actions during the verified runs.
+GitHub Actions reported a Node.js 20 deprecation warning for the currently used actions during the verified runs.
 
 The affected actions were:
 
@@ -1434,16 +1281,13 @@ actions/setup-python@v5
 actions/upload-artifact@v4
 ```
 
-The warning did not prevent the successful CI execution and did not prevent
-the controlled failure behavior.
+The warning did not prevent the successful CI execution and did not prevent the controlled failure behavior.
 
-This is documented as a technical compatibility note and not as a
-pipeline failure.
+This is documented as a technical compatibility note and not as a pipeline failure.
 
 ### Phase-10 Evidence Boundary
 
-Phase 10 extends the use of the existing Evidence Framework into the CI
-execution path.
+Phase 10 extends the use of the existing Evidence Framework into the CI execution path.
 
 The architecture remains:
 
@@ -1463,11 +1307,7 @@ CI Evidence JSON Files
 GitHub Actions Artifact
 ```
 
-No new evidence fields, evidence model, validation mechanism, or serialization
-format is introduced by Phase 10.
-
-The CI workflow also does not implement separate Security Regression test
-logic.
+No new evidence fields, evidence model, validation mechanism, or serialization format is introduced by Phase 10.
 
 The following capabilities remain outside the current Evidence Framework:
 
@@ -1479,6 +1319,4 @@ generalized regression orchestration
 automated remediation tracking
 ```
 
-The GitHub Actions workflow provides CI execution and artifact handling for
-the currently implemented regression suite. It does not constitute a
-generalized security evidence-management platform.
+The GitHub Actions workflow provides CI execution and artifact handling for the currently implemented regression suite. The Evidence Framework remains responsible for representing, validating, and serializing the evidence generated by test execution.

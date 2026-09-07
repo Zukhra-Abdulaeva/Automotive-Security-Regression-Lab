@@ -2,43 +2,35 @@
 
 ## Purpose
 
-The Automotive Security Regression Lab uses a structured methodology to turn a defined security requirement into a reproducible security test.
+This methodology defines how an automotive security requirement is translated into a reproducible security test and how the resulting observation is evaluated, recorded, retested, and used for regression verification.
 
-The methodology separates:
+The methodology separates the following activities:
 
-* security requirements
-* threat modeling
-* attack hypotheses
-* security-test definition
-* test execution
-* result evaluation
-* evidence generation
-* security-relevant observations
-* remediation
-* retesting
-* regression testing
-* automated regression testing
-* CI/CD execution
+- security requirements
+- threat modeling
+- attack-surface definition
+- attack hypotheses
+- security-test definition
+- test execution
+- expected-versus-actual evaluation
+- evidence generation
+- security-relevant assessment
+- security finding documentation
+- remediation
+- retesting
+- regression testing
+- automated regression testing
+- CI/CD execution
 
-The methodology is implemented incrementally across the project phases.
+The current implementation provides a deterministic workflow for security-test execution against a simulated ECU, structured evidence generation, controlled regression testing, example finding documentation, automated regression verification, and CI execution.
 
-The current implementation covers the security-test, evidence, Phase-8 example finding, Phase-9 automated regression, and Phase-10 CI/CD workflow.
-
-Phase 7 extends the existing security-test and evidence workflow with a controlled regression lifecycle for the diagnostic authorization security property established by TC-001.
-
-Phase 8 extends the workflow with structured example finding documentation based on the existing test and evidence results.
-
-Phase 9 extends the methodology with an automated pytest security regression suite covering the established security properties of the simulated ECU.
-
-Phase 10 extends the automated regression workflow with GitHub Actions execution and CI evidence artifact generation. GitHub Actions executes the existing Phase-9 security regression logic and does not introduce a second security-test implementation.
-
-Generalized security finding management, automated finding ingestion, remediation tracking, historical regression comparison, generalized regression orchestration, and generalized security lifecycle management remain outside the current implementation.
+Finding management, automated finding ingestion, remediation tracking, historical regression comparison, generalized regression orchestration, and generalized security lifecycle management are outside the current implementation.
 
 ---
 
 ## Methodology Overview
 
-The long-term project methodology is:
+The complete methodological chain is:
 
 ```text
 Security Requirement
@@ -73,8 +65,6 @@ Automated Regression
         ↓
 CI/CD
 ```
-
-Not all stages are currently implemented.
 
 The currently implemented workflow is:
 
@@ -114,12 +104,9 @@ CI Evidence JSON Files
 GitHub Actions Artifact
 ```
 
-Phase 7 implements the regression extension only for the diagnostic authorization security property represented by TC-001.
-Phase 8 adds structured example finding documentation based on the existing security-test and evidence results.
-Phase 9 adds an automated pytest regression suite for the established security properties represented by the current simulated ECU and test architecture.
-The Phase-9 suite verifies the secure behavior of individual regression scenarios and validates that regression evidence represents the executed secure retest.
-Phase 10 executes the established Phase-9 regression suite through GitHub Actions and generates the existing structured Evidence objects as CI evidence JSON files that are uploaded as a workflow artifact.
-The distinction between implemented and planned capabilities is maintained throughout this document.
+The workflow uses the established security-test, ECU simulation, test-runner, response-evaluation, and evidence components throughout the process.
+
+The distinction between implemented functionality and future lifecycle capabilities is maintained explicitly.
 
 ---
 
@@ -128,822 +115,504 @@ The distinction between implemented and planned capabilities is maintained throu
 ### Define the Security Property First
 
 The expected security behavior is defined before test execution.
-The security test evaluates a security requirement rather than deriving the requirement from the observed implementation.
 
-For TC-001, the requirement is:
+A security test evaluates a previously defined security property rather than deriving the expected result from the implementation under test.
+
+For TC-001, the security requirement is:
 
 ```text
 Protected diagnostic operations shall require authorization.
 ```
 
-The expected behavior is therefore defined independently of the ECU implementation.
+The expected result is therefore defined independently of the ECU implementation.
+
+---
 
 ### Test Through the Target Boundary
 
-Security tests interact with the system under test through the defined target interface.
-The test does not depend on internal ECU implementation details.
+Security tests interact with the target through the established target abstraction.
 
-The current execution path is:
+The execution path is:
 
 ```text
 Security Test
-     ↓
+    ↓
 Test Runner
-     ↓
+    ↓
 ECU Adapter
-     ↓
+    ↓
 Simulated ECU
-     ↓
-Response
+    ↓
+ECU Response
 ```
 
-This keeps the security-test logic independent from the concrete ECU implementation.
+The test logic therefore evaluates externally observable target behavior instead of relying on internal ECU implementation details.
 
-### Separate Expected and Actual Behavior
+---
 
-The expected result represents the security requirement.
-The actual result represents the behavior returned by the system under test.
+### Separate Expected and Actual Results
 
-The evaluation is:
+The expected result represents the defined security property.
 
-```text
-Expected Behavior
-        +
-Actual Behavior
-        ↓
-Test Result
-```
+The actual result represents the response returned by the system under test.
 
 For example:
 
 ```text
-Expected = ACCESS_DENIED
-
-Actual   = ACCESS_GRANTED
-```
-
-results in:
-
-```text
-FAIL
-```
-
-The expected security behavior is not changed to make an insecure implementation pass.
-
-### Keep Evidence Separate from Execution
-
-Evidence is generated after test execution.
-The evidence layer records the completed observation but does not control target behavior or test execution.
-
-The separation is:
-
-```text
-Test Execution
-      ↓
-Test Result
-      ↓
-Evidence
-```
-
-This keeps evidence generation independent from the system under test.
-
-The CI evidence path extends this existing separation:
-
-```text
-Security Regression Tests
-        ↓
-EvidenceGenerator
-        ↓
-Evidence
-        ↓
-Evidence.to_json()
-        ↓
-CI Evidence JSON Files
-        ↓
-GitHub Actions Artifact
-```
-
-The CI layer therefore collects the results of the existing test and evidence architecture rather than implementing separate security-test logic.
-
-### Keep Tests Reproducible
-
-A security test should produce the same security-relevant result when executed against the same defined target state and input.
-
-The current simulation therefore avoids dependencies on:
-
-* physical hardware
-* external networks
-* external services
-* uncontrolled target state
-* random security behavior
-
-Execution timestamps are generated dynamically and are treated as execution metadata rather than as part of the security decision.
-The Phase-9 regression suite additionally creates a fresh secure ECU simulator for each regression scenario. Authorization state and ECU state are explicitly configured where required by the scenario.
-This isolates individual regression cases from state changes caused by preceding tests and keeps the regression execution deterministic.
-
-Phase 10 preserves these properties by executing the existing Phase-9 regression suite in the controlled GitHub Actions environment.
-
-## Regression Methodology
-
-A regression test is created by preserving the security property and reproducing the relevant test condition after a security-relevant change.
-The Phase-7 implementation follows this controlled sequence:
-
-```text
-Security Property
-        ↓
-Existing Test Condition
-        ↓
-Controlled Vulnerable Behavior
-        ↓
-Secure Retest
-        ↓
-Expected vs Actual
-        ↓
-Regression Result
-        ↓
-Evidence
-```
-
-The expected security behavior remains independent of the observed target behavior.
-
-For the TC-001 authorization property:
-
-```text
-Unauthorized protected operation
-        ↓
 Expected: ACCESS_DENIED
+Actual:   ACCESS_GRANTED
+Result:   FAIL
 ```
 
-The controlled vulnerable mode demonstrates the modeled deviation:
-
-```text
-VULNERABLE
-
-authorization = false
-        ↓
-ACCESS_GRANTED
-```
-
-The secure retest verifies the intended behavior:
-
-```text
-SECURE
-
-authorization = false
-        ↓
-ACCESS_DENIED
-```
-
-The regression result is determined by the existing `SecurityTestRunner` and the expected-versus-actual comparison.
-The Evidence Framework then records the completed execution.
-The regression methodology therefore reuses the existing test and evidence architecture instead of introducing a separate regression execution mechanism.
-Phase 9 adds automated pytest verification around the established security properties.
-The Phase-9 regression scenarios execute against a fresh secure ECU simulator and verify expected secure responses for authorization, message validation, boundary input, ECU state, and regression evidence.
-Phase 9 does not reproduce the vulnerable state as part of the pytest regression suite. Controlled vulnerable-state reproduction remains part of the Phase-7 TC-003 regression workflow.
-
-Phase 10 adds CI execution around the existing Phase-9 regression suite:
-
-```text
-Existing Phase-9 Regression Logic
-        ↓
-GitHub Actions
-        ↓
-pytest Security Regression Suite
-        ↓
-Evidence Generation
-        ↓
-Artifact Upload
-```
-
-No second security-test implementation is introduced in the CI workflow.
+The expected result is not modified to make an insecure implementation pass.
 
 ---
 
-# Current Implemented Methodology
+### Keep Evidence Separate from Execution
+
+Evidence is generated after test execution and records the completed observation.
+
+The evidence model does not control the target or execute the security test.
+
+The basic relationship is:
+
+```text
+Test Execution
+    ↓
+Test Result
+    ↓
+Evidence
+```
+
+For CI execution, the existing evidence architecture is reused:
+
+```text
+Security Regression Tests
+    ↓
+EvidenceGenerator
+    ↓
+Evidence
+    ↓
+Evidence.to_json()
+    ↓
+CI Evidence JSON Files
+    ↓
+GitHub Actions Artifact
+```
+
+CI therefore collects evidence from the established test and evidence architecture rather than introducing a separate security-test implementation.
+
+---
+
+### Keep Tests Reproducible
+
+A security test should produce the same security-relevant result for the same defined state and input.
+
+The current simulation provides deterministic execution by avoiding:
+
+- physical hardware
+- external networks
+- external services
+- uncontrolled target state
+- random security behavior
+
+Execution timestamps are evidence metadata and do not define the security result.
+
+Regression scenarios create a fresh secure ECU simulator and explicitly configure authorization and ECU state. Inputs and expected response statuses are deterministic.
+
+The same properties are preserved when the established regression suite is executed through CI.
+
+---
+
+# Current Methodology
 
 ## Step 1 — Security Requirement
 
-The first step is to define the security property that the test is intended to verify.
-A security requirement describes expected security behavior without depending on a specific implementation.
+The security property is defined before execution.
 
-For TC-001:
+TC-001 defines:
 
 ```text
 Protected diagnostic operations shall require authorization.
 ```
 
-For TC-002, the requirement is:
+TC-002 defines:
 
 ```text
-Invalid diagnostic requests shall be rejected before security-relevant
-operation processing.
+Invalid diagnostic requests shall be rejected before security-relevant operation processing.
 ```
 
-The requirement is translated into testable conditions.
-
-Unauthorized access:
+For TC-001:
 
 ```text
-Authorization = false
-+
-PROTECTED_OPERATION
-        ↓
-ACCESS_DENIED
+Authorization=false + PROTECTED_OPERATION → ACCESS_DENIED
+Authorization=true  + PROTECTED_OPERATION → ACCESS_GRANTED
 ```
 
-Authorized access:
-
-```text
-Authorization = true
-+
-PROTECTED_OPERATION
-        ↓
-ACCESS_GRANTED
-```
-
-The requirement remains unchanged during test execution.
+The requirement remains unchanged during execution.
 
 ---
 
 ## Step 2 — Threat Model
 
-The threat model identifies the asset, threat, potential attacker, and security property relevant to the test.
-
-For TC-001:
-
-### Asset
+### TC-001 — Diagnostic Authorization
 
 ```text
+Asset:
 Protected Diagnostic Operation
-```
 
-### Threat
+Threat:
+Unauthorized execution of protected diagnostic operation
 
-```text
-Unauthorized execution of a protected diagnostic operation
-```
-
-### Potential Attacker
-
-```text
+Potential Attacker:
 Unauthorized diagnostic client
+
+Security Property:
+Authorization must be enforced before execution of protected operation.
 ```
 
-### Security Property
+The model is limited to the controlled simulation and does not represent a complete production vehicle threat model.
+
+### TC-002 — Message Validation
 
 ```text
-Authorization must be enforced before execution of the protected operation.
-```
-
-The threat model is limited to the behavior represented by the controlled simulation.
-It does not represent a complete production vehicle threat model.
-
-For TC-002:
-
-### Asset
-
-```text
+Asset:
 Protected ECU Request Processing
-```
 
-### Threat
-
-```text
+Threat:
 Malformed or invalid diagnostic input reaching security-relevant processing
-```
 
-### Potential Attacker
-
-```text
+Potential Attacker:
 Unauthorized or malformed diagnostic client
-```
 
-### Security Property
-
-```text
+Security Property:
 Invalid requests shall be rejected before security-relevant operation processing.
 ```
 
-The threat model is limited to the request-validation behavior represented by the controlled simulation.
+This model is likewise limited to the controlled simulation.
 
 ---
 
 ## Step 3 — Attack Surface
 
-The attack surface identifies the interface through which the security property is evaluated.
+The relevant request paths are modeled as:
 
-For TC-001:
+### TC-001
 
 ```text
 Diagnostic Request
-        ↓
+    ↓
 Protected Operation
-        ↓
+    ↓
 Authorization Check
-        ↓
+    ↓
 ECU Response
 ```
 
-For TC-002:
+### TC-002
 
 ```text
 Diagnostic Request
-        ↓
+    ↓
 Request Validation
-        ↓
+    ↓
 Operation Processing
-        ↓
+    ↓
 ECU Response
 ```
 
-Within the project, this is represented by the request interface exposed by the simulated ECU.
-No real CAN bus, UDS endpoint, vehicle network, or physical diagnostic interface is involved.
-The documented attack surface therefore represents the simulated target boundary.
+The project uses a simulated ECU request interface.
+
+There is no real CAN, UDS, vehicle network, physical diagnostic interface, or production ECU communication.
 
 ---
 
 ## Step 4 — Attack Hypothesis
 
-The attack hypothesis describes how the security requirement could be violated.
+### TC-001
 
-For TC-001:
+If authorization is not correctly enforced, an unauthorized requester may execute a protected operation.
 
-```text
-If authorization is not correctly enforced,
-an unauthorized requester may be able to execute
-the protected operation.
-```
+The controlled test therefore executes the protected operation while authorization is disabled.
 
-The hypothesis is tested by submitting the protected operation while authorization is disabled.
-
-```text
-authorization = false
-
-PROTECTED_OPERATION
-```
-
-The secure target is expected to return:
+The expected secure result is:
 
 ```text
 ACCESS_DENIED
 ```
 
-The controlled vulnerable target intentionally returns:
+The controlled vulnerable behavior is:
 
 ```text
 ACCESS_GRANTED
 ```
 
-This provides a deterministic security-relevant deviation for testing.
+### TC-002
 
-For TC-002:
+If malformed, unsupported, or impermissible requests are not correctly validated, invalid input may reach security-relevant processing.
 
-```text
-If malformed, unsupported, or otherwise impermissible requests are not
-correctly validated, an invalid request may reach security-relevant
-operation processing.
-```
+The test uses deterministic invalid or impermissible requests.
 
-The hypothesis is tested by submitting deterministic invalid or impermissible requests to the simulated ECU.
-
-The expected response depends on the validation condition:
+Expected responses are:
 
 ```text
-Invalid request structure
-        ↓
-INVALID_REQUEST
+Invalid request structure → INVALID_REQUEST
+Unsupported operation     → UNSUPPORTED_OPERATION
+Invalid parameter data    → REQUEST_REJECTED
+Blocked ECU state         → REQUEST_REJECTED
 ```
 
-```text
-Unsupported operation
-        ↓
-UNSUPPORTED_OPERATION
-```
-
-```text
-Invalid parameter data or blocked ECU state
-        ↓
-REQUEST_REJECTED
-```
-
-The test therefore verifies that invalid or impermissible input is rejected deterministically before protected operation processing.
+Validation therefore occurs before protected operation processing.
 
 ---
 
 ## Step 5 — Security Test
 
-The security test translates the security requirement and attack hypothesis into an executable test definition.
+The `SecurityTestCase` defines the core test information:
 
-The current `SecurityTestCase` abstraction contains:
+```text
+test_id
+description
+request
+expected_status
+```
 
-* `test_id`
-* `description`
-* `request`
-* `expected_status`
+### TC-001
 
-For TC-001, the protected operation is:
+The protected operation is:
 
 ```text
 PROTECTED_OPERATION
 ```
 
-The unauthorized scenario expects:
+The expected results are:
 
 ```text
-ACCESS_DENIED
+Unauthorized → ACCESS_DENIED
+Authorized   → ACCESS_GRANTED
 ```
 
-The authorized scenario expects:
+The expected status is defined independently of the response returned by the ECU.
+
+### TC-002
+
+The message-validation scenarios cover invalid request structures, unsupported operations, invalid parameter data, and blocked ECU state.
+
+The response semantics are:
 
 ```text
-ACCESS_GRANTED
+Invalid request structure → INVALID_REQUEST
+Invalid parameter data    → REQUEST_REJECTED
+Unsupported operation     → UNSUPPORTED_OPERATION
+Blocked ECU state         → REQUEST_REJECTED
 ```
 
-The expected result is defined by the security test and is not derived from the response returned by the target.
-TC-002 extends the security-test set with message-validation scenarios.
-TC-002 evaluates the externally observable ECU response against the defined expected behavior.
+The defined validation conditions are:
 
-The TC-002 validation flow is:
+| Condition | Expected Response |
+|---|---|
+| Request is not a valid mapping | `INVALID_REQUEST` |
+| Operation is missing or empty | `INVALID_REQUEST` |
+| Parameters are not a valid mapping | `INVALID_REQUEST` |
+| Parameter value is outside `0..255` | `REQUEST_REJECTED` |
+| Parameter value is a boolean | `REQUEST_REJECTED` |
+| Operation is not supported | `UNSUPPORTED_OPERATION` |
+| ECU is blocked | `REQUEST_REJECTED` |
 
-```text
-TC-002 — Message Validation
-        ↓
-Request Validation
-        ↓
-+-----------------------------+
-| Invalid request structure   | → INVALID_REQUEST
-| Invalid parameter data      | → REQUEST_REJECTED
-| Unsupported operation       | → UNSUPPORTED_OPERATION
-| Blocked ECU state           | → REQUEST_REJECTED
-+-----------------------------+
-```
+The TC-002 behavior is evaluated through the externally observable ECU response and is independent of the internal implementation.
 
-TC-002 therefore distinguishes between malformed or invalid request data, unsupported operations, and requests that are rejected because of parameter or ECU-state restrictions.
+### Automated Regression Test Definition
 
-The expected response semantics are:
-
-```text
-Condition                                  Expected response
-Request is not a valid mapping              INVALID_REQUEST
-Operation is missing or empty               INVALID_REQUEST
-Parameters are not a valid mapping          INVALID_REQUEST
-Parameter value is outside 0..255           REQUEST_REJECTED
-Parameter value is a boolean                REQUEST_REJECTED
-Operation is not supported                  UNSUPPORTED_OPERATION
-ECU is blocked                              REQUEST_REJECTED
-```
-
-The test verifies these externally observable response semantics without depending on the ECU simulator's internal validation implementation.
-TC-002 is limited to deterministic message and parameter validation.
-It does not introduce or imply a formal security-finding lifecycle, remediation management, regression management, or CI/CD workflow.
-The test remains independent from the internal request-validation implementation of the ECU simulator.
-
-### Phase-9 Automated Regression Test Definition
-
-Phase 9 introduces a dedicated pytest regression suite in:
+The automated regression suite is implemented in:
 
 ```text
 04_tests/test_security_regression.py
 ```
 
-The suite creates `SecurityTestCase` instances with:
+It uses the established architecture and defines seven regression scenarios:
 
-```text
-test_id = TC-003
-```
+1. unauthorized protected operation → `ACCESS_DENIED`
+2. authorized protected operation → `ACCESS_GRANTED`
+3. invalid message → `INVALID_REQUEST`
+4. unsupported operation → `UNSUPPORTED_OPERATION`
+5. out-of-range boundary input `256` → `REQUEST_REJECTED`
+6. protected operation in blocked ECU state → `REQUEST_REJECTED`
+7. secure regression evidence → expected and actual `ACCESS_DENIED`, Evidence `PASS`
 
-These Phase-9 regression test cases reuse the existing security-test architecture, including `SecurityTestRunner`, `ECUAdapter`, `ECUSimulator`, and the existing response-status model.
-They are not the same test-case definition as the TC-001 test case.
-Each regression scenario uses a fresh secure ECU simulator. Authorization and ECU state are explicitly configured where required.
-The verified Phase-9 regression scenarios are:
+Each regression scenario uses a fresh secure ECU simulator with explicitly configured conditions.
 
-```text
-Unauthorized protected operation
-        ↓
-Expected = ACCESS_DENIED
-Actual   = ACCESS_DENIED
-```
+The evidence scenario validates the test ID, target, preconditions, expected result, actual result, result status, and evidence validity.
 
-```text
-Authorized protected operation
-        ↓
-Expected = ACCESS_GRANTED
-Actual   = ACCESS_GRANTED
-```
-
-```text
-Invalid message
-        ↓
-Expected = INVALID_REQUEST
-Actual   = INVALID_REQUEST
-```
-
-```text
-Unsupported operation
-        ↓
-Expected = UNSUPPORTED_OPERATION
-Actual   = UNSUPPORTED_OPERATION
-```
-
-```text
-Out-of-range boundary input
-
-value = 256
-        ↓
-Expected = REQUEST_REJECTED
-Actual   = REQUEST_REJECTED
-```
-
-```text
-Protected operation while ECU is blocked
-        ↓
-Expected = REQUEST_REJECTED
-Actual   = REQUEST_REJECTED
-```
-
-The seventh regression scenario additionally verifies that evidence generated from the secure retest contains the expected test identifier, target, preconditions, expected response, actual response, PASS result, and a valid Evidence object.
-Phase 9 therefore automates verification of established security properties but does not introduce a new target, adapter, runner, evidence model, communication layer, or generalized regression orchestration mechanism.
+The automated regression suite reuses the existing target, adapter, runner, response, and evidence architecture.
 
 ---
 
 ## Step 6 — Preconditions
 
-Security tests are executed under defined preconditions.
+### TC-001
 
-For TC-001, the relevant authorization states are:
-
-Unauthorized:
+The relevant preconditions are:
 
 ```text
-authorization = false
+Authorization:
+false or true
+
+Security Mode:
+secure or vulnerable
 ```
 
-Authorized:
+Vulnerable mode is used only for the controlled security-relevant deviation.
+
+### TC-002
+
+The test uses a secure simulated ECU with deterministic validation conditions:
 
 ```text
-authorization = true
+Invalid request structure
+Unsupported operation
+Invalid parameter
+Blocked ECU state
 ```
 
-The ECU security mode is also explicitly configured:
+### Automated Regression
+
+The regression scenarios explicitly configure:
 
 ```text
-secure
+Security Mode:
+SECURE
+
+Authorization:
+false or true
+
+ECU State:
+READY or BLOCKED
 ```
 
-or:
-
-```text
-vulnerable
-```
-
-The vulnerable mode is used only to reproduce the intended security-relevant deviation in the controlled simulation.
-For TC-002, the target is configured as a secure simulated ECU through the same target abstraction used by the security-test infrastructure.
-The TC-002 scenarios establish their required conditions through the defined test inputs and explicit ECU state where required.
-
-Invalid request structure:
-
-```text
-invalid request structure
-```
-
-Unsupported operation:
-
-```text
-unsupported operation
-```
-
-Invalid parameter value:
-
-```text
-parameter value outside 0..255
-```
-
-Blocked ECU state:
-
-```text
-ecu_state = blocked
-```
-
-The expected response depends on the specific validation condition and is defined by the individual TC-002 test case.
-TC-002 does not require a separate authorization precondition for the message-validation scenarios, except where authorization is explicitly configured to establish the blocked-state scenario.
-For Phase 9, each regression scenario starts with a fresh secure ECU simulator.
-
-The relevant preconditions are explicitly configured per scenario:
-
-```text
-security_mode = secure
-
-authorization = false or true
-
-ecu_state = ready or blocked
-```
-
-This prevents state leakage between individual regression scenarios.
+A fresh simulator is used for each regression scenario.
 
 ---
 
 ## Step 7 — Test Execution
 
-The Test Runner executes the test through the target abstraction.
-
-The execution path is:
+The established execution path is:
 
 ```text
 SecurityTestCase
-        ↓
+    ↓
 SecurityTestRunner
-        ↓
+    ↓
 ECUTarget
-        ↓
+    ↓
 ECUAdapter
-        ↓
+    ↓
 ECUSimulator
-        ↓
+    ↓
 ECUResponse
 ```
 
-The Test Runner does not access internal ECU state.
-The simulator processes the request and returns a structured response.
-The response is then evaluated against the expected result defined by the security test.
-Phase 9 invokes this existing execution path from pytest regression tests.
-The pytest layer therefore acts as an automated verification layer around the established security-test architecture rather than replacing the Test Runner.
+The `SecurityTestRunner` executes the test through the target boundary and evaluates the returned response.
 
-Phase 10 invokes the same Phase-9 regression suite from GitHub Actions:
+The runner does not depend on internal simulator state for the expected result.
 
-```text
-GitHub Actions
-        ↓
-pytest 04_tests/test_security_regression.py
-        ↓
-Existing Security Regression Logic
-        ↓
-Test Results
-```
+The automated regression suite wraps the established execution path rather than implementing a second security-test architecture.
 
-The CI workflow does not define a second set of security assertions.
-The security regression logic remains centralized in:
+The file
 
 ```text
 04_tests/test_security_regression.py
 ```
 
-This file is the Single Source of Truth for the Phase-9 security regression scenarios executed by the CI workflow.
+is the Single Source of Truth for the automated security regression scenarios.
 
 ---
 
-## Step 8 — Expected vs Actual Evaluation
+## Step 8 — Expected vs Actual
 
-The test result is determined by comparing expected and actual behavior.
-
-The evaluation rule is:
+The result evaluation follows:
 
 ```text
-Expected == Actual
-        ↓
-PASS
+Expected == Actual → PASS
+Expected != Actual → FAIL
 ```
 
-and:
+For a secure unauthorized TC-001 execution:
 
 ```text
-Expected != Actual
-        ↓
-FAIL
+Expected: ACCESS_DENIED
+Actual:   ACCESS_DENIED
+Result:   PASS
 ```
 
-Secure unauthorized execution:
+For the controlled vulnerable behavior:
 
 ```text
-Expected = ACCESS_DENIED
-Actual   = ACCESS_DENIED
-Result   = PASS
+Expected: ACCESS_DENIED
+Actual:   ACCESS_GRANTED
+Result:   FAIL
 ```
 
-Controlled vulnerable execution:
+A `FAIL` identifies a deviation between the defined security property and the observed behavior. It does not by itself create a formal security finding.
 
-```text
-Expected = ACCESS_DENIED
-Actual   = ACCESS_GRANTED
-Result   = FAIL
-```
+The automated regression tests assert the expected `TestResult`.
 
-The `FAIL` represents an observed deviation from the defined security requirement.
-It does not automatically establish a formal security finding.
-In Phase 9, pytest additionally asserts the expected `TestResult` state.
-A passing pytest regression test therefore confirms that the defined regression scenario produced the expected secure result.
+In CI, a pytest failure propagates to the GitHub Actions job. The workflow does not use `continue-on-error`.
 
-For example:
-
-```text
-SecurityTestCase expected: ACCESS_DENIED
-ECU actual:                ACCESS_DENIED
-TestResult.passed:         True
-pytest test:               PASS
-```
-
-In Phase 10, a pytest failure propagates to the GitHub Actions job because the security regression step does not use `continue-on-error`.
-A failing security regression therefore causes the CI job to fail.
-
-The controlled CI failure test verified this behavior:
-
-```text
-Security Regression Assertion
-        ↓
-pytest FAIL
-        ↓
-GitHub Actions Job FAIL
-```
-
-The CI evidence generation and artifact upload steps use `always()` so that evidence can still be generated and uploaded after a test failure.
+Evidence generation and artifact upload are configured with `if: always()`, allowing evidence to remain available when the test execution fails.
 
 ---
 
 ## Step 9 — Evidence Generation
 
-After test execution, the result can be represented as structured evidence.
-
-The evidence flow is:
+Evidence follows the established path:
 
 ```text
 Test Result
-      ↓
+    ↓
 Evidence Generator
-      ↓
+    ↓
 Evidence Model
-      ↓
+    ↓
 JSON
 ```
 
-The current Evidence model records:
-
-* `test_id`
-* `timestamp`
-* `target`
-* `preconditions`
-* `input`
-* `expected`
-* `actual`
-* `result`
-* `notes`
-
-Evidence records what happened during the test execution.
-
-It does not modify the target, expected result, or test execution.
-Phase 9 additionally verifies regression evidence for the secure unauthorized protected-operation scenario.
-The regression evidence contains the executed secure conditions:
+The evidence model contains:
 
 ```text
-authorization = false
-ecu_state = READY
-security_mode = SECURE
+test_id
+timestamp
+target
+preconditions
+input
+expected
+actual
+result
+notes
 ```
 
-and verifies:
+The result value is:
 
 ```text
-expected = ACCESS_DENIED
-actual = ACCESS_DENIED
-result = PASS
+PASS
+FAIL
 ```
 
-The generated evidence is then validated through the existing Evidence Framework.
-This verifies that the regression evidence is structurally consistent with the executed secure retest.
-
-### Phase-10 CI Evidence Flow
-
-Phase 10 reuses the existing Evidence architecture for CI execution.
-
-The central CI evidence chain is:
+For the secure unauthorized regression scenario, the evidence contains the relevant execution conditions:
 
 ```text
-Security Regression Tests
-        ↓
-EvidenceGenerator
-        ↓
-Evidence
-        ↓
-Evidence.to_json()
-        ↓
-CI Evidence JSON Files
-        ↓
-GitHub Actions Artifact
+authorization=false
+ecu_state=READY
+security_mode=SECURE
+expected=ACCESS_DENIED
+actual=ACCESS_DENIED
+result=PASS
 ```
 
-The CI workflow generates six JSON evidence files from the established Phase-9 regression scenarios.
-The evidence files use the existing `EvidenceGenerator` and `Evidence` model.
-No separate CI-specific evidence model is introduced.
+The evidence is validated as a completed execution record.
 
-The generated CI evidence is uploaded under the artifact name:
+The CI workflow reuses `EvidenceGenerator` and `Evidence.to_json()`.
 
-```text
-security-regression-evidence
-```
-
-The artifact is generated and uploaded even when the regression test job fails because the evidence generation and upload steps are configured with `if: always()`.
-
-This behavior was verified during the controlled CI failure test.
-
-The locally verified evidence generation produced six JSON files:
+The CI execution generates six JSON evidence files:
 
 ```text
 TC-003_unauthorized_protected_operation.json
@@ -954,39 +623,49 @@ TC-003_boundary_input.json
 TC-003_unexpected_state.json
 ```
 
-The evidence content uses the same structured Evidence semantics as the local regression workflow.
+The generated files are uploaded as:
+
+```text
+security-regression-evidence
+```
+
+Evidence generation and artifact upload use `if: always()`.
 
 ---
 
 ## Step 10 — Security Finding Documentation
 
-Phase 8 converts selected security-test observations into structured example finding documentation.
-A finding is not created solely because a test returned `FAIL`.
-The finding documentation is based on the relationship:
+A security finding is derived from a security-relevant observation and its evidence.
+
+The relationship is:
 
 ```text
 Security Requirement
-        ↓
+    ↓
 Security Test
-        ↓
+    ↓
 Observed Behavior
-        ↓
+    ↓
 Evidence
-        ↓
+    ↓
 Security-Relevant Assessment
-        ↓
+    ↓
 Finding Documentation
 ```
 
-For SEC-001, TC-001 reproduces a defined security-relevant deviation:
+A test result of `FAIL` is therefore an input to the assessment and does not automatically create a formal finding.
+
+### SEC-001
+
+SEC-001 documents the controlled TC-001 authorization deviation:
 
 ```text
-Expected = ACCESS_DENIED
-Actual   = ACCESS_GRANTED
-Result   = FAIL
+Expected: ACCESS_DENIED
+Actual:   ACCESS_GRANTED
+Result:   FAIL
 ```
 
-The observation is then documented with:
+The structured finding contains:
 
 ```text
 Security Requirement
@@ -1006,94 +685,106 @@ Regression Test
 Status
 ```
 
-For SEC-002, TC-002 does not reproduce a security-relevant deviation.
-
-The corresponding documentation therefore records:
-
-```text
-Expected == Actual
-        ↓
-No security-relevant deviation reproduced
-```
-
-SEC-002 is retained as a Phase-8 example of structured assessment documentation and is not presented as a demonstrated vulnerability.
-
-The finding documents are stored under:
+The finding documentation is stored under:
 
 ```text
 05_examples/
 ```
 
-Phase 8 does not introduce automated finding ingestion, finding storage, historical finding tracking, or generalized vulnerability management.
+### SEC-002
+
+SEC-002 documents the TC-002 message-validation behavior without a security-relevant deviation.
+
+The project provides structured example findings rather than an automated finding-management system.
 
 ---
 
-## Security Test Result vs. Test Framework Result
+# Security Test Result vs Test Framework Result
 
-The TC-003 lifecycle demonstration distinguishes between the security test result and the pytest test result.
+The security-test result and the pytest framework result represent different levels of evaluation.
 
 For the controlled vulnerable behavior:
 
 ```text
-SecurityTestCase expected: ACCESS_DENIED
-ECUSimulator actual:       ACCESS_GRANTED
-TestResult.passed:         False
+TestResult.passed = false
 ```
 
-The pytest test passes because it asserts that this deviation is correctly detected.
+The pytest test can nevertheless pass because the test correctly detects the expected security deviation.
 
-Therefore:
+For the secure retest:
 
 ```text
-pytest PASS
+TestResult.passed = true
 ```
 
-does not mean:
+and the pytest test also passes.
+
+The distinction is therefore:
 
 ```text
-SecurityTestResult PASS
+TestResult:
+Describes whether the system behavior matches the defined security expectation.
+
+pytest result:
+Describes whether the automated test correctly verified the intended condition.
 ```
 
-for the vulnerable-state demonstration.
+CI status reflects the pytest result, not the semantic meaning of an individual `TestResult`.
 
-For the secure regression retest, both results are positive:
+---
+
+# Regression Methodology
+
+Regression testing verifies that a security property remains satisfied after a security-relevant change.
+
+The controlled regression workflow is:
 
 ```text
-SecurityTestCase expected: ACCESS_DENIED
-ECUSimulator actual:       ACCESS_DENIED
-TestResult.passed:         True
-pytest test:               PASS
+Security Property
+    ↓
+Existing Test Condition
+    ↓
+Controlled Vulnerable Behavior
+    ↓
+Secure Retest
+    ↓
+Expected vs Actual
+    ↓
+Regression Result
+    ↓
+Evidence
 ```
 
-This distinction is required for a correct interpretation of the Phase-7 test lifecycle.
-Phase 9 extends this distinction by asserting the expected secure `TestResult` through pytest.
-The Phase-9 regression suite itself is expected to pass when the established security properties remain satisfied.
-
-In Phase 10, the pytest framework result also determines the CI job status:
+For TC-001:
 
 ```text
-pytest PASS
-        ↓
-GitHub Actions Job PASS
+Unauthorized protected operation
+Expected secure result: ACCESS_DENIED
+
+Controlled vulnerable behavior:
+Authorization=false → ACCESS_GRANTED
+
+Secure retest:
+Authorization=false → ACCESS_DENIED
 ```
 
-or:
+The regression result is determined by the `SecurityTestRunner` through expected-versus-actual evaluation.
 
-```text
-pytest FAIL
-        ↓
-GitHub Actions Job FAIL
-```
+The Evidence Framework records the completed execution.
 
-The CI status therefore reflects the automated regression test result and does not replace the security-test result represented by the underlying `TestResult`.
+The regression workflow therefore reuses the existing security-test and evidence architecture.
+
+The automated regression suite extends this methodology by verifying the established secure behavior across seven deterministic scenarios.
+
+The CI workflow executes that existing regression suite and preserves its evidence as JSON artifacts.
+
+No second security-test implementation is introduced for regression or CI execution.
 
 ---
 
 # TC-001 Methodology Example
 
-TC-001 applies the implemented methodology as follows.
-
-## Security Requirement
+## Requirement
 
 ```text
 Protected diagnostic operations shall require authorization.
@@ -1101,33 +792,36 @@ Protected diagnostic operations shall require authorization.
 
 ## Threat
 
-```text
-Unauthorized execution of a protected diagnostic operation.
-```
+Unauthorized diagnostic execution of a protected operation.
 
 ## Attack Surface
 
 ```text
 Diagnostic Request
-        ↓
+    ↓
 Protected Operation
-        ↓
+    ↓
 Authorization Check
+    ↓
+ECU Response
 ```
 
 ## Attack Hypothesis
 
-```text
-An unauthorized requester may execute the protected operation
-
-if authorization is not correctly enforced.
-```
+An unauthorized requester may execute the protected operation if authorization is not correctly enforced.
 
 ## Preconditions
 
 ```text
-authorization = false
-ECU mode = secure or vulnerable
+Authorization=false
+Security Mode=SECURE
+```
+
+For the controlled vulnerable execution:
+
+```text
+Authorization=false
+Security Mode=VULNERABLE
 ```
 
 ## Input
@@ -1152,1223 +846,661 @@ ACCESS_GRANTED
 
 ```text
 Expected != Actual
-        ↓
-FAIL
+Result = FAIL
+```
+
+The secure retest restores the expected behavior:
+
+```text
+Expected: ACCESS_DENIED
+Actual:   ACCESS_DENIED
+Result:   PASS
 ```
 
 ## Evidence
 
-```text
-Test ID
-Target
-Preconditions
-Input
-Expected
-Actual
-Result
-Timestamp
-Notes
-```
+The execution result is recorded using the established Evidence model.
 
-The authorized scenario additionally verifies:
+The evidence includes the test ID, target, preconditions, input, expected result, actual result, result status, timestamp, and notes.
+
+## Authorized Scenario
+
+Authorization is also tested as a positive case:
 
 ```text
-authorization = true
-
+Authorization=true
 PROTECTED_OPERATION
-        ↓
+    ↓
 ACCESS_GRANTED
 ```
 
-This confirms that authorization enforcement does not prevent valid authorized access.
+This preserves the expected authorized behavior while verifying rejection of unauthorized access.
+
+---
 
 # TC-002 Methodology Example
 
-TC-002 applies the implemented methodology to message validation.
-
-## Security Requirement
+## Requirement
 
 ```text
-Invalid diagnostic requests shall be rejected before security-relevant
-operation processing.
+Invalid diagnostic requests shall be rejected before security-relevant operation processing.
 ```
 
 ## Threat
 
-```text
-Malformed, unsupported, or impermissible diagnostic input may reach
-security-relevant processing.
-```
+Malformed or impermissible diagnostic input may reach security-relevant processing.
 
 ## Attack Surface
 
 ```text
 Diagnostic Request
-        ↓
+    ↓
 Request Validation
-        ↓
+    ↓
 Operation Processing
+    ↓
+ECU Response
 ```
 
 ## Attack Hypothesis
 
-```text
-An invalid requester may reach operation processing if request validation
-is not correctly enforced.
-```
+Invalid requests may be processed incorrectly if request validation is not enforced before operation processing.
 
 ## Preconditions
 
-```text
-ECU mode = secure
-```
+A secure simulated ECU is used with deterministic validation conditions.
 
-Scenario-specific conditions may additionally include:
+## Input and Expected Result
 
 ```text
-ECU state = blocked
+Invalid request structure → INVALID_REQUEST
+Unsupported operation     → UNSUPPORTED_OPERATION
+Invalid parameter data    → REQUEST_REJECTED
+Blocked ECU state         → REQUEST_REJECTED
 ```
 
-where required by the test scenario.
-
-## Input
+For otherwise valid authorized requests, the established boundary values include:
 
 ```text
-Invalid request structure
-or
-Unsupported operation
-or
-Invalid parameter data
-or
-Protected operation while ECU is blocked
+value=0   → ACCESS_GRANTED
+value=255 → ACCESS_GRANTED
 ```
 
-## Expected Result
-
-The expected response depends on the validation condition:
-
-```text
-Invalid request structure -> INVALID_REQUEST
-Unsupported operation -> UNSUPPORTED_OPERATION
-Invalid parameter data -> REQUEST_REJECTED
-Protected operation while ECU is blocked -> REQUEST_REJECTED
-```
-
-Valid parameter boundary values are separately verified:
-
-```text
-value = 0   -> ACCESS_GRANTED
-value = 255 -> ACCESS_GRANTED
-```
-
-when the ECU is authorized and otherwise in an acceptable operational state.
+when authorization and ECU state permit the protected operation.
 
 ## Evaluation
 
-```text
-Expected == Actual
-        ↓
-PASS
-```
-
-A deviation from the expected response results in:
-
-```text
-FAIL
-```
-
-The `FAIL` represents an observed deviation from the defined message-validation requirement.
-It does not automatically establish a formal security finding.
+The returned ECU response is compared with the expected response defined by the test.
 
 ## Evidence
 
-TC-002 uses the existing Evidence Framework and records the same structured execution information as the other security tests:
-
-```text
-Test ID
-Target
-Preconditions
-Input
-Expected
-Actual
-Result
-Timestamp
-Notes
-```
+The resulting `TestResult` is recorded through the established Evidence Framework.
 
 ---
 
 # TC-003 Methodology Example
 
-TC-003 applies the implemented methodology to the controlled regression of the diagnostic authorization security property established by TC-001.
-The TC-003 regression workflow and the Phase-9 pytest regression suite must be distinguished.
-The Phase-7 TC-003 workflow demonstrates the complete controlled regression lifecycle, including vulnerable-state reproduction, secure retest, regression evidence, and authorized-behavior verification.
-Phase 9 provides automated pytest verification of established security properties and the secure regression evidence.
-Phase 10 executes this established automated regression suite through GitHub Actions and collects the generated regression evidence as a CI artifact.
+TC-003 covers the regression workflow and its automated verification.
 
-## Security Property
+The controlled regression lifecycle includes:
 
 ```text
-Protected diagnostic operations shall require authorization.
-```
-
-## Existing Test Condition
-
-```text
-authorization = false
-
-PROTECTED_OPERATION
-```
-
-The expected security behavior remains:
-
-```text
-ACCESS_DENIED
-```
-
-## Controlled Vulnerable-State Reproduction
-
-The vulnerable mode represents the modeled pre-fix behavior in a controlled simulation.
-
-```text
-VULNERABLE
-
-authorization = false
-        ↓
-ACCESS_GRANTED
-```
-
-The resulting security test outcome is:
-
-```text
-Expected = ACCESS_DENIED
-Actual   = ACCESS_GRANTED
-Result   = FAIL
-```
-
-The `FAIL` is intentional for this lifecycle step because TC-003 verifies that the original security deviation can be reproduced and detected.
-
-## Secure Retest
-
-The same unauthorized condition is then executed against the secure simulator mode:
-
-```text
-SECURE
-
-authorization = false
-        ↓
-ACCESS_DENIED
-```
-
-The resulting security test outcome is:
-
-```text
-Expected = ACCESS_DENIED
-Actual   = ACCESS_DENIED
-Result   = PASS
-```
-
-This verifies that the diagnostic authorization security property is restored in the controlled secure state.
-
-## Authorized-Behavior Verification
-
-TC-003 additionally verifies that valid authorized access remains available:
-
-```text
-SECURE
-
-authorization = true
-        ↓
-ACCESS_GRANTED
-```
-
-The resulting security test outcome is:
-
-```text
-Expected = ACCESS_GRANTED
-Actual   = ACCESS_GRANTED
-Result   = PASS
-```
-
-This ensures that the regression verification does not only check rejection of unauthorized access but also confirms preservation of authorized behavior.
-
-## Regression Evidence
-
-The regression evidence is generated from the executed `TestResult`.
-
-The workflow is:
-
-```text
-Controlled Vulnerable Behavior
-        ↓
-Original Security Condition
-        ↓
+Vulnerable Reproduction
+    ↓
 Secure Retest
-        ↓
-Expected vs Actual
-        ↓
+    ↓
 Regression Evidence
-        ↓
-Evidence Validation
-        ↓
+    ↓
 Authorized Behavior Verification
 ```
 
-The Evidence Framework records the executed regression result and validates the resulting Evidence object.
-
-TC-003 does not introduce a separate evidence model or a separate execution mechanism.
-
-## Phase-9 Automated Regression Verification
-
-Phase 9 verifies the established security properties through:
+The automated regression suite verifies the established secure security properties through seven scenarios:
 
 ```text
-04_tests/test_security_regression.py
+Unauthorized protected operation → ACCESS_DENIED
+Authorized protected operation   → ACCESS_GRANTED
+Invalid message                  → INVALID_REQUEST
+Unsupported operation            → UNSUPPORTED_OPERATION
+Boundary input 256               → REQUEST_REJECTED
+Blocked ECU state                → REQUEST_REJECTED
+Regression evidence              → PASS
 ```
 
-The suite defines its own `SecurityTestCase` instances with:
+The automated suite uses the established ECU simulator, target abstraction, adapter, runner, response model, and evidence model.
 
-```text
-test_id = TC-003
-```
+The controlled vulnerable reproduction remains part of the regression methodology and is distinct from the secure automated regression scenarios.
 
-These test cases reuse the existing test execution architecture but are distinct from the TC-001 test-case definition.
-Each scenario uses a fresh secure ECU simulator.
-
-The verified regression conditions are:
-
-```text
-Unauthorized protected operation
-        ↓
-ACCESS_DENIED
-```
-
-```text
-Authorized protected operation
-        ↓
-ACCESS_GRANTED
-```
-
-```text
-Invalid request
-        ↓
-INVALID_REQUEST
-```
-
-```text
-Unsupported operation
-        ↓
-UNSUPPORTED_OPERATION
-```
-
-```text
-Out-of-range parameter value
-
-value = 256
-        ↓
-REQUEST_REJECTED
-```
-
-```text
-Blocked ECU state
-        ↓
-REQUEST_REJECTED
-```
-
-The final Phase-9 scenario verifies that the generated regression evidence represents the secure retest and that the evidence object passes validation.
-The Phase-9 suite therefore verifies established security behavior automatically without implementing vulnerable-state reproduction, historical comparison, or generalized regression orchestration.
-
-## Phase-10 CI Execution
-
-Phase 10 executes the existing Phase-9 security regression suite through GitHub Actions.
-
-The CI path is:
-
-```text
-GitHub Event
-        ↓
-Repository Checkout
-        ↓
-Python 3.12
-        ↓
-Install pytest>=9,<10
-        ↓
-pytest 04_tests/test_security_regression.py
-        ↓
-Evidence Generation
-        ↓
-Evidence JSON Files
-        ↓
-GitHub Actions Artifact
-```
-
-The workflow is configured for:
-
-```text
-push
-pull_request
-```
-
-The actual `push` execution was verified on `main` for commit `78c943f`.
-
-The successful GitHub Actions run verified:
-
-```text
-Workflow = Security Regression
-Trigger = push
-Branch = main
-Commit = 78c943f
-Job = security-regression
-Status = Success
-Artifact = security-regression-evidence
-```
-
-The CI evidence artifact was generated from the existing regression evidence path.
-
-The artifact therefore represents the output of the existing security regression and Evidence architecture rather than a separate CI test implementation.
-
-The controlled failure test additionally verified:
-
-```text
-Security Regression Assertion
-        ↓
-pytest FAIL
-        ↓
-GitHub Actions Job FAIL
-        ↓
-Evidence Generation
-        ↓
-Artifact Upload
-```
-
-The PR trigger is configured in the workflow but has not been documented as an actually executed GitHub Actions run because no concrete PR execution has been verified.
+CI executes the automated regression suite and uploads the generated evidence as the `security-regression-evidence` artifact.
 
 ---
 
 # Evidence and Traceability
 
-The methodology maintains traceability from the security requirement to the test execution and resulting evidence.
-
-The current relationship is:
+The primary traceability chain is:
 
 ```text
-Security Requirement
-        ↓
+Requirement
+    ↓
 Threat Model
-        ↓
+    ↓
 Attack Surface
-        ↓
+    ↓
 Attack Hypothesis
-        ↓
+    ↓
 Security Test
-        ↓
+    ↓
 Test Execution
-        ↓
+    ↓
 Test Result
-        ↓
+    ↓
 Evidence
 ```
 
-This allows a test execution to be related to the security property it was designed to verify.
-The current implementation provides this relationship for the implemented security tests, including TC-001 and TC-002, at the test and evidence level.
-For TC-003, the existing TC-001 security property is reused to provide a controlled regression workflow.
-Phase 8 extends the documentation layer by relating selected existing test and evidence results to structured example findings.
-Phase 9 extends automated verification of the established security properties and verifies that the regression evidence generated from a secure retest matches the executed test result.
-Phase 10 extends this path into CI execution while preserving the existing test and evidence architecture.
-
-The Phase-9 relationship is:
+For security findings, the chain continues as:
 
 ```text
-Established Security Property
-        ↓
-Phase-9 Regression Test Case
-        ↓
-SecurityTestRunner
-        ↓
-Secure ECU Execution
-        ↓
-TestResult
-        ↓
-Regression Evidence
-        ↓
-Evidence Validation
-```
-
-The Phase-10 CI relationship is:
-
-```text
-Phase-9 Regression Suite
-        ↓
-GitHub Actions
-        ↓
-pytest Result
-        ↓
-EvidenceGenerator
-        ↓
 Evidence
-        ↓
-Evidence.to_json()
-        ↓
-CI Evidence JSON Files
-        ↓
-GitHub Actions Artifact
+    ↓
+Security-Relevant Assessment
+    ↓
+Finding Documentation
 ```
 
-The current Phase-8 relationship is:
+Automated regression extends the execution path:
 
 ```text
-Security Requirement
-        ↓
 Security Test
-        ↓
+    ↓
+Regression Test
+    ↓
 Test Result
-        ↓
+    ↓
 Evidence
-        ↓
-Example Finding
 ```
 
-SEC-001 is based on the controlled security-relevant deviation reproduced by TC-001.
-SEC-002 documents the TC-002 assessment where no security-relevant deviation was reproduced.
-More advanced requirement identifiers, finding identifiers, automated traceability, historical comparison, and generalized lifecycle management remain outside the current implementation.
+CI adds the execution and artifact layer:
+
+```text
+Automated Regression
+    ↓
+GitHub Actions
+    ↓
+Evidence JSON
+    ↓
+Artifact
+```
+
+The current project does not implement advanced traceability IDs, historical comparison, generalized finding lifecycle management, or automated finding correlation.
 
 ---
 
 # Reproducibility
 
-Reproducibility is a core requirement of the methodology.
-The same test should be executable repeatedly against the same defined target state and input.
+The methodology is designed around deterministic execution.
 
-The current simulation supports this through:
+Reproducibility is supported by:
 
-* deterministic ECU behavior
-* explicit security modes
-* explicit authorization state
-* controlled requests
-* deterministic response statuses
-* structured evidence
-* absence of external dependencies
+- deterministic ECU simulation
+- explicit security modes
+- explicit authorization state
+- explicit ECU state
+- controlled requests
+- deterministic response statuses
+- structured evidence
+- absence of external runtime dependencies
 
-The Phase-9 regression suite additionally supports reproducibility by:
+The automated regression scenarios use a fresh secure simulator for each scenario.
 
-* creating a fresh secure ECU simulator for each regression scenario
-* explicitly configuring authorization where required
-* explicitly configuring ECU state where required
-* using deterministic request inputs
-* using fixed expected response statuses
-* avoiding dependency on previous test execution state
+The relevant authorization and ECU state are explicitly configured.
 
-Phase 10 preserves this deterministic test setup by executing the existing regression suite in GitHub Actions.
-The CI environment does not introduce real vehicle systems, real ECU communication, external automotive infrastructure, or other external target dependencies.
+Expected response statuses are fixed by the test definition.
 
-The execution timestamp changes between runs.
-This is expected because the timestamp records when the test was executed.
-It does not affect the security-test result.
+This avoids state leakage between regression scenarios.
+
+Execution timestamps change between runs but represent metadata rather than a security-relevant input.
+
+CI executes the same established regression suite without introducing a different security-test path.
 
 ---
 
 # Validation of the Test Infrastructure
 
-The methodology applies verification to both the simulated target and the security-test infrastructure.
-
-The current verification layers are:
+The test infrastructure is validated through the following test layers:
 
 ```text
 ECU Simulation Tests
-        ↓
-Security Test Architecture Tests
-        ↓
-Evidence Framework Tests
-        ↓
-TC-001 Security Test
-        ↓
-TC-002 Security Test
-        ↓
+    ↓
+Architecture Tests
+    ↓
+Evidence Tests
+    ↓
+TC-001 Tests
+    ↓
+TC-002 Tests
+    ↓
 TC-003 Regression Workflow Tests
-        ↓
-Phase-9 Security Regression Suite
-        ↓
+    ↓
+Automated Security Regression Suite
+    ↓
 Complete pytest Suite
-        ↓
-Phase-10 CI Execution
+    ↓
+GitHub Actions CI
 ```
 
-Phase 9 provides the following verified regression coverage:
+The automated security regression suite verifies seven defined scenarios.
+
+The complete local pytest suite was verified with:
 
 ```text
-Unauthorized protected operation
-Authorized protected operation
-Invalid message
-Unsupported operation
-Boundary input validation
-Blocked ECU state
-Regression evidence validation
+pytest -v
 ```
 
-The dedicated Phase-9 regression suite was locally verified with:
+Result:
 
 ```text
-7 passed
+41 passed in 0.16s
 ```
 
-The complete pytest suite was locally verified with:
+The dedicated regression suite was verified with:
 
 ```text
-41 passed
+pytest .\04_tests\test_security_regression.py -v
 ```
 
-The verified test distribution is:
+Result:
 
 ```text
-ECU Simulation Tests                 6
-Evidence Framework Tests            14
-Foundation Test                     1
-Security Regression Tests           7
-TC-001 Security Test                4
-TC-002 Security Test                5
-Test Runner Tests                   4
-Total                               41
+7 passed in 0.06s
 ```
 
-Phase 10 was additionally verified through an actual GitHub Actions execution.
+The complete local test distribution is:
 
-The successful CI run was triggered by `push` of commit `78c943f` to `main` and completed with:
+| Test Area | Tests |
+|---|---:|
+| ECU Simulation | 6 |
+| Evidence | 14 |
+| Foundation | 1 |
+| Security Regression | 7 |
+| TC-001 | 4 |
+| TC-002 | 5 |
+| Test Runner | 4 |
+| **Total** | **41** |
+
+The CI workflow was also verified with a successful push-triggered execution on `main`.
+
+The successful run used commit:
 
 ```text
-Workflow: Security Regression
-Job: security-regression
-Status: Success
-Artifact: security-regression-evidence
+78c943f
 ```
 
-The controlled failure test additionally verified that a deliberately failed security regression assertion causes the GitHub Actions job to fail while still producing the configured evidence artifact.
+The workflow completed successfully and produced the:
 
-This allows changes in the ECU simulation, test architecture, evidence handling, security-test implementation, established regression properties, or CI workflow to be detected through automated verification.
-The test infrastructure is therefore treated as software that also requires verification.
+```text
+security-regression-evidence
+```
+
+artifact.
+
+A controlled failure was additionally verified on the temporary branch:
+
+```text
+ci/controlled-failure-test
+```
+
+The local execution produced:
+
+```text
+1 failed, 6 passed
+```
+
+The corresponding CI execution propagated the failure with exit code `1`, while the evidence artifact was still uploaded because the evidence upload uses `if: always()`.
+
+The restoration was completed with:
+
+```text
+a604f08
+```
+
+The controlled failure therefore verifies both failure propagation and evidence preservation.
+
+The GitHub Actions workflow also defines a pull-request trigger. A separate pull-request execution has not been claimed as independently verified.
 
 ---
 
-# Future Security Lifecycle
+# CI/CD Execution
 
-The project currently demonstrates a controlled retest and regression workflow through Phase 7, structured example finding documentation through Phase 8, automated pytest regression verification through Phase 9, and CI/CD execution through Phase 10.
+The CI workflow executes the established automated regression suite.
 
-The following capabilities remain future work:
-
-```text
-Generalized Security Finding Management
-        ↓
-Automated Finding Ingestion
-        ↓
-Remediation Tracking
-        ↓
-Historical Regression Comparison
-        ↓
-Generalized Regression Orchestration
-        ↓
-Generalized Security Lifecycle Management
-```
-
-Phase 7 therefore provides a verified regression workflow for the defined TC-001 security property.
-Phase 8 provides structured example finding documentation based on existing test and evidence results.
-Phase 9 provides automated pytest verification of established security properties.
-Phase 10 provides GitHub Actions execution of the established regression suite and CI evidence artifact generation.
-Neither Phase 7, Phase 8, Phase 9, nor Phase 10 implements a generalized security finding, remediation, historical comparison, or regression management platform.
-
----
-
-## Security Finding
-
-Phase 8 introduces structured example security findings based on the existing security-test and evidence workflow.
-
-The finding documentation formalizes a security-relevant observation by recording:
-
-* affected security property
-* observed behavior
-* security impact
-* exploitability
-* root cause where supported by implementation evidence
-* recommendation
-* fix
-* retest
-* regression relationship
-* status
-
-A test `FAIL` alone is not treated as a complete finding.
-SEC-001 demonstrates the finding workflow for the controlled authorization deviation reproduced by TC-001.
-SEC-002 demonstrates the documentation of an assessment result where no security-relevant deviation was reproduced by TC-002.
-The finding documents are portfolio documentation artifacts. They do not implement a generalized finding-management system.
-
----
-
-## Root Cause
-
-Root-cause analysis determines why the observed security behavior occurred.
-
-For the controlled vulnerable TC-001 scenario, the modeled root cause is:
+Its relevant flow is:
 
 ```text
-The authorization state is not enforced before execution
-of the protected operation.
-```
-
-This describes the behavior of the simulated target.
-It is not a claim about a real ECU implementation.
-Phase 8 documents root cause for a finding where the available implementation evidence supports a concrete cause.
-For SEC-001, the root cause is directly traceable to the deliberate vulnerable branch in `ECUSimulator.handle_request()`.
-SEC-002 does not establish a security-relevant deviation and therefore does not assign a vulnerability root cause.
-
----
-
-## Recommended Fix
-
-The remediation should address the security cause rather than modify the security test expectation.
-For TC-001, the simulated ECU must enforce authorization before granting the protected operation.
-
-The required security property remains:
-
-```text
-Protected diagnostic operations shall require authorization.
-```
-
-The security test is not weakened to accommodate an insecure implementation.
-SEC-001 documents this remediation relationship explicitly.
-For SEC-002, no corrective fix is claimed because no security-relevant deviation was reproduced.
-
----
-
-## Implemented Fix
-
-The implemented fix changes the system under test so that it satisfies the security requirement.
-
-The expected relationship is:
-
-```text
-Security Requirement
-        ↓
-Test Failure
-        ↓
-Root Cause
-        ↓
-Fix
-        ↓
-Same Security Test
-```
-
-The test expectation remains unchanged.
-Phase 8 documents the implemented fix and retest relationship for SEC-001.
-This documentation does not constitute a generalized finding, remediation, or retest management capability.
-
----
-
-## Retest
-
-After a fix, the original security test is executed again.
-The retest uses the same security requirement and security-test logic.
-
-The intended flow is:
-
-```text
-Security-Relevant Deviation
-        ↓
-Fix
-        ↓
-Same Security Test
-        ↓
-Retest
-        ↓
-Expected Secure Behavior
-```
-
-For TC-001:
-
-```text
-authorization = false
-
-PROTECTED_OPERATION
-        ↓
-ACCESS_DENIED
-```
-
-and:
-
-```text
-authorization = true
-
-PROTECTED_OPERATION
-        ↓
-ACCESS_GRANTED
-```
-
-The purpose of the retest is to verify that the security property is now satisfied.
-Phase 7 implements a controlled retest as part of TC-003 for the diagnostic authorization security property.
-Phase 8 documents the retest relationship for SEC-001.
-A generalized project-level retest workflow remains future work.
-
----
-
-## Regression
-
-Retesting verifies the specific corrected security behavior.
-Regression testing verifies that previously established security behavior remains correct after later changes.
-
-The current Phase-7 regression workflow is:
-
-```text
-Original Security Condition
-        ↓
-Controlled Vulnerable-State Reproduction
-        ↓
-Secure Retest
-        ↓
-Regression Evaluation
-        ↓
-Regression Evidence
-```
-
-This workflow is implemented specifically for the diagnostic authorization security property represented by TC-001.
-
-Phase 9 adds automated pytest verification of established security properties:
-
-```text
-Established Security Properties
-        ↓
-Phase-9 Regression Tests
-        ↓
-Secure ECU Execution
-        ↓
-Expected vs Actual
-        ↓
-Automated Regression Result
-```
-
-Phase 10 executes this automated regression suite through GitHub Actions:
-
-```text
-Phase-9 Regression Tests
-        ↓
-GitHub Actions
-        ↓
-pytest Result
-        ↓
-Evidence Generation
-        ↓
-Evidence Artifact
-```
-
-The Phase-9 suite covers authorization, request validation, boundary input handling, ECU state restrictions, and regression evidence validation.
-The project does not implement historical result comparison or a generalized regression orchestration layer.
-
----
-
-## Automated Regression
-
-The long-term regression model is:
-
-```text
-Security Test Cases
-        ↓
-Automated Regression Suite
-        ↓
-Test Results
-        ↓
-Evidence
-```
-
-Phase 7 provides a verified, specific regression workflow through TC-003.
-Phase 9 provides the currently implemented automated pytest regression suite.
-Phase 10 executes this suite through GitHub Actions.
-
-The Phase-9 suite is located in:
-
-```text
-04_tests/test_security_regression.py
-```
-
-It verifies established security properties against fresh secure ECU simulator instances.
-
-The verified scenarios are:
-
-```text
-Unauthorized protected operation -> ACCESS_DENIED
-Authorized protected operation -> ACCESS_GRANTED
-Invalid message -> INVALID_REQUEST
-Unsupported operation -> UNSUPPORTED_OPERATION
-Out-of-range parameter value -> REQUEST_REJECTED
-Blocked ECU state -> REQUEST_REJECTED
-Regression evidence -> validated PASS evidence
-```
-
-The dedicated regression suite currently contains seven pytest tests.
-
-Local verification confirmed:
-
-```text
-7 passed
-```
-
-The Phase-9 suite does not implement:
-
-```text
-Vulnerable-state reproduction
-Historical result comparison
-Finding ingestion
-Finding lifecycle management
-Generalized regression orchestration
-```
-
-Those capabilities remain outside the current implementation.
-
-### CI/CD Execution
-
-Phase 10 integrates the existing automated regression suite into GitHub Actions.
-
-The implemented workflow is:
-
-```text
-GitHub Event
-        ↓
-Repository Checkout
-        ↓
+GitHub Actions Trigger
+    ↓
 Python 3.12
-        ↓
-Install pytest>=9,<10
-        ↓
-Security Regression Suite
-        ↓
+    ↓
+pytest
+    ↓
+04_tests/test_security_regression.py
+    ↓
 Evidence Generation
-        ↓
-Evidence JSON Files
-        ↓
-GitHub Actions Artifact
+    ↓
+CI Evidence JSON Files
+    ↓
+Artifact Upload
 ```
 
-The workflow is configured for:
+The workflow is triggered by:
 
 ```text
 push
 pull_request
 ```
 
-The security regression step executes:
+The test dependency is installed as:
 
 ```text
-pytest -v 04_tests/test_security_regression.py
+pytest>=9,<10
 ```
 
-The CI workflow therefore invokes the existing Phase-9 regression suite rather than defining a separate CI-specific test suite.
-
-The CI evidence path is:
+The regression command targets:
 
 ```text
-Security Regression Tests
-        ↓
-EvidenceGenerator
-        ↓
-Evidence
-        ↓
-Evidence.to_json()
-        ↓
-CI Evidence JSON Files
-        ↓
-GitHub Actions Artifact
+04_tests/test_security_regression.py
 ```
 
-The artifact is named:
+The workflow therefore uses the automated regression suite as its Single Source of Truth.
 
-```text
-security-regression-evidence
-```
+CI does not introduce:
 
-Evidence generation and artifact upload are configured to run even when the regression test step fails.
+- production deployment
+- vehicle communication
+- real ECU communication
+- finding management
+- historical comparison
+- automatic remediation
 
-This behavior was verified through a controlled CI failure test.
-
-The actual successful CI execution was triggered by a `push` of commit `78c943f` to `main`.
-The workflow completed successfully and produced one `security-regression-evidence` artifact.
-
-A controlled failure on branch `ci/controlled-failure-test` deliberately caused one security regression assertion to fail.
-The local regression suite produced:
-
-```text
-1 failed, 6 passed
-```
-
-The corresponding GitHub Actions run failed with exit code `1` and still produced the `security-regression-evidence` artifact.
-The security regression expectation was then restored through commit `a604f08`, and the regression suite was locally verified again with:
-
-```text
-7 passed in 0.06s
-```
-
-The configured `pull_request` trigger is implemented but has not been documented as an actually executed GitHub Actions run because no concrete PR execution has been verified.
+The current CI implementation is limited to automated test execution, evidence generation, and artifact upload.
 
 ---
 
-# Relationship to Project Phases
+# Root Cause
 
-The methodology is developed incrementally together with the project.
+For SEC-001, the modeled root cause is:
 
 ```text
-Phase 0
-Project Definition
-        ↓
-Phase 1
-Repository Foundation
-        ↓
-Phase 2
-ECU Simulation
-        ↓
-Phase 3
-Security Test Architecture
-        ↓
-Phase 4
-Evidence Framework
-        ↓
-Phase 5
-TC-001
-        ↓
-Phase 6
-TC-002
-        ↓
-Phase 7
-TC-003 Regression Workflow
-        ↓
-Phase 8
-Example Findings
-SEC-001 / SEC-002 structured example finding documentation
-        ↓
-Phase 9
-pytest Regression Suite
-        ↓
-Phase 10
-GitHub Actions / CI/CD
-        ↓
-Phase 11
-End-to-End Assessment
-        ↓
-Phase 12
-Professional Documentation
-        ↓
-Phase 13
-Technical Review
-        ↓
-Phase 14
-Recruiter / Interview Review
+Authorization state is not enforced before granting the protected operation.
 ```
 
-Each phase adds a concrete capability to the overall methodology.
-The project does not treat planned stages as completed functionality.
+This describes the controlled simulator behavior used to reproduce the security deviation.
+
+It is not a claim about a real production ECU.
 
 ---
 
-# Scope and Limitations
+# Recommended Fix
 
-The methodology is currently defined for the controlled simulation environment of the Automotive Security Regression Lab.
+The modeled remediation is:
 
-It does not define procedures for:
+```text
+Enforce authorization before granting the protected operation.
+```
 
-* real vehicle security assessments
-* physical ECU testing
-* real CAN communication
-* real UDS communication
-* production diagnostic interfaces
-* OEM infrastructure
-* customer systems
-* production penetration testing
+The security requirement remains unchanged by the remediation.
 
-The methodology demonstrates engineering principles for reproducible security testing.
-It is not presented as a complete operational methodology for real-world automotive penetration testing.
+---
 
-Phase 10 uses GitHub Actions only as an automation environment for the existing simulated security regression suite.
-No real vehicle, ECU, CAN network, OEM infrastructure, customer system, credential, or external automotive service is accessed by the CI workflow.
+# Implemented Fix
+
+The test expectation remains:
+
+```text
+Unauthorized protected operation → ACCESS_DENIED
+```
+
+The expected security property is therefore independent of the implementation change being evaluated.
+
+---
+
+# Retest
+
+The retest executes the same security property after the security-relevant change.
+
+For TC-001:
+
+```text
+Authorization=false
+PROTECTED_OPERATION
+    ↓
+Expected: ACCESS_DENIED
+```
+
+The secure retest confirms that the previously observed deviation is no longer present.
+
+---
+
+# Regression
+
+Regression testing preserves the established security property after the secure behavior has been restored.
+
+The project contains:
+
+```text
+TC-001 controlled regression workflow
+        +
+Automated seven-scenario security regression suite
+        +
+GitHub Actions CI execution
+```
+
+The controlled regression demonstrates vulnerable reproduction and secure retest.
+
+The automated regression suite verifies the established secure behavior.
+
+CI executes the automated suite and preserves its evidence.
+
+---
+
+# Automated Regression
+
+The automated regression suite verifies seven established scenarios:
+
+```text
+1. Unauthorized protected operation → ACCESS_DENIED
+2. Authorized protected operation   → ACCESS_GRANTED
+3. Invalid message                  → INVALID_REQUEST
+4. Unsupported operation            → UNSUPPORTED_OPERATION
+5. Boundary input 256               → REQUEST_REJECTED
+6. Blocked ECU state                → REQUEST_REJECTED
+7. Regression evidence              → PASS
+```
+
+The suite uses deterministic simulated ECU behavior and the existing security-test architecture.
+
+It does not implement historical comparison, automated finding lifecycle management, or generalized regression orchestration.
+
+---
+
+# Security Finding
+
+The project contains structured example findings derived from selected security-test observations.
+
+They demonstrate the relationship between security requirements, observed behavior, evidence, and security assessment.
+
+The finding documentation is not a generalized finding-management system.
+
+---
+
+# Current Scope and Limitations
+
+The methodology operates within the controlled project architecture.
+
+The current scope includes:
+
+- deterministic ECU simulation
+- security modes
+- authorization behavior
+- request validation
+- target abstraction
+- security-test execution
+- test-result evaluation
+- structured evidence
+- TC-001 diagnostic authorization
+- TC-002 message validation
+- TC-003 regression workflow
+- structured example findings
+- automated security regression testing
+- GitHub Actions execution
+- CI evidence generation
+- evidence artifact upload
+- controlled CI failure propagation
+
+The following remain outside the current implementation:
+
+- real CAN communication
+- real UDS communication
+- physical ECU testing
+- vehicle-network integration
+- OEM production systems
+- generalized finding management
+- automated finding ingestion
+- historical finding tracking
+- CVSS management
+- historical regression comparison
+- generalized regression orchestration
+- automatic test generation
+- deployment automation
+- production CI/CD
+- automatic remediation
+
+The target abstraction allows future target extensions conceptually, but no real ECU, CAN, or UDS adapter is implemented.
+
+---
+
+# Future Security Lifecycle
+
+The current methodology establishes a controlled security-test and regression workflow.
+
+Potential future capabilities include:
+
+- generalized finding management
+- automated finding ingestion
+- remediation tracking
+- historical regression comparison
+- generalized regression orchestration
+- generalized security lifecycle management
+
+These capabilities are future extensions and are not part of the current implementation.
+
+---
+
+# Historical Development
+
+The methodology developed incrementally with the project.
+
+| Phase | Development |
+|---|---|
+| Phase 0 | Project Definition |
+| Phase 1 | Repository Foundation |
+| Phase 2 | ECU Simulation |
+| Phase 3 | Security Test Architecture |
+| Phase 4 | Evidence Framework |
+| Phase 5 | TC-001 Diagnostic Authorization |
+| Phase 6 | TC-002 Message Validation |
+| Phase 7 | TC-003 Regression Workflow |
+| Phase 8 | Example Findings |
+| Phase 9 | Automated pytest Regression Suite |
+| Phase 10 | GitHub Actions / CI/CD |
+| Phase 11 | End-to-End Assessment |
+| Phase 12 | Professional Documentation |
+| Phase 13 | Technical Review |
+| Phase 14 | Recruiter / Interview Review |
+
+The technical implementation history currently established in the project architecture covers the development through automated regression and CI/CD.
+
+Later project phases represent the subsequent documentation and review stages of the project and are kept here as project-history information rather than as additional implemented methodology capabilities.
 
 ---
 
 # Current Implementation Status
 
-The methodology currently supports:
+The implemented methodology currently provides:
 
 ```text
-Security Requirement
+Security Requirement Definition
         ↓
-Threat Model
+Threat and Attack-Surface Definition
         ↓
-Attack Surface
+Security-Test Definition
         ↓
-Attack Hypothesis
+Deterministic ECU Test Execution
         ↓
-Security Test
+Expected vs Actual Evaluation
         ↓
-Test Execution
+Structured Evidence
         ↓
-Expected vs Actual
-        ↓
-Evidence
-        ↓
-Controlled Security-Relevant Deviation
-        ↓
-Secure Retest
-        ↓
-Regression Evaluation
-        ↓
-Regression Evidence
+Controlled Regression
         ↓
 Example Finding Documentation
         ↓
-Automated Security Regression Tests
+Automated Security Regression
         ↓
 GitHub Actions CI Execution
         ↓
 CI Evidence Artifact
 ```
 
-Implemented capabilities include:
-
-* deterministic ECU simulation
-* secure and vulnerable ECU modes
-* security-test abstractions
-* target abstraction through `ECUTarget`
-* ECU adapter
-* automated test execution
-* expected-versus-actual evaluation
-* structured evidence
-* JSON serialization
-* TC-001 Diagnostic Authorization
-* TC-002 Message Validation
-* TC-003 Regression Workflow
-* Phase-9 automated pytest security regression suite
-* local pytest verification
-* Phase-10 GitHub Actions CI workflow
-* CI execution of the existing security regression suite
-* CI Evidence JSON generation
-* GitHub Actions Evidence artifact upload
-* verified CI failure propagation
-
-The Phase-9 regression suite verifies seven scenarios covering:
+The current verification status includes:
 
 ```text
-Unauthorized protected operation
-Authorized protected operation
-Invalid message
-Unsupported operation
-Boundary input validation
-Blocked ECU state
-Regression evidence validation
+Complete local pytest suite:
+41 passed
+
+Dedicated automated regression suite:
+7 passed
+
+Successful push-triggered GitHub Actions execution:
+verified
+
+CI evidence artifact:
+verified
+
+Controlled CI failure propagation:
+verified
+
+Controlled failure evidence upload:
+verified
+
+Separate pull-request execution:
+not independently verified
 ```
-
-The local verification status is:
-
-```text
-Dedicated Phase-9 regression suite: 7 passed
-Complete pytest suite:              41 passed
-```
-
-The Phase-10 CI verification status includes:
-
-```text
-Successful GitHub Actions push run:       [VERIFIED]
-Security regression CI job success:       [VERIFIED]
-CI evidence artifact upload:              [VERIFIED]
-Controlled CI failure propagation:        [VERIFIED]
-Evidence artifact after CI failure:       [VERIFIED]
-Pull-request execution:                   [NOT VERIFIED]
-```
-
-The successful GitHub Actions run was:
-
-```text
-Workflow: Security Regression
-Trigger: push
-Branch: main
-Commit: 78c943f
-Job: security-regression
-Status: Success
-Artifact: security-regression-evidence
-```
-
-The controlled failure test was performed on:
-
-```text
-Branch: ci/controlled-failure-test
-Failure commit: 25432a4
-Restore commit: a604f08
-```
-
-The temporary branch is retained as project evidence of the controlled CI failure and restoration workflow.
-The `main` branch remains on commit `78c943f` and was locally verified as clean and synchronized with `origin/main`.
-
-A GitHub Actions warning concerning the Node.js runtime used by the currently selected actions was observed during the verified runs.
-The warning did not cause a workflow failure and is treated as a technical maintenance note rather than a demonstrated pipeline error.
-
-The following capabilities belong to later project phases:
-
-* generalized security finding management
-* automated finding ingestion
-* root-cause management as a generalized lifecycle capability
-* remediation tracking
-* generalized retest workflow
-* historical regression comparison
-* generalized regression orchestration
-* end-to-end assessment
-* professional documentation package
-* technical review
-* recruiter / interview review
-
-Phase 8 additionally provides the following documentation artifacts:
-
-```text
-SEC-001 — Unauthorized access to protected diagnostic operation
-SEC-002 — No security-relevant deviation reproduced in diagnostic message validation
-```
-
-These are structured example findings and assessment records. They do not constitute a generalized finding-management implementation.
-Phase 9 additionally provides an automated pytest regression verification layer.
-Phase 10 additionally provides CI/CD execution of this regression layer and collection of the generated regression evidence as a GitHub Actions artifact.
 
 ---
 
 # Methodological Principle
 
-The central principle of the Automotive Security Regression Lab is:
+The central methodological principle is:
 
 ```text
-Define the security property
-        ↓
-Model the threat
-        ↓
-Formulate the attack hypothesis
-        ↓
-Test the property
-        ↓
-Observe the target
-        ↓
-Record the result
-        ↓
-Correct the implementation
-        ↓
+Define Security Property
+    ↓
+Model Threat
+    ↓
+Formulate Attack Hypothesis
+    ↓
+Test Property
+    ↓
+Observe Target
+    ↓
+Record Result
+    ↓
+Correct Implementation
+    ↓
 Retest
-        ↓
-Prevent regression
+    ↓
+Prevent Regression
 ```
 
-Only the stages implemented in the current project phase are treated as verified capabilities.
-The methodology keeps the security requirement, system under test, test execution, evidence, and later security-lifecycle activities separate.
-Phase 9 strengthens the regression stage by providing automated pytest verification of established security properties while preserving the existing security-test and evidence architecture.
-Phase 10 extends this automated regression stage into GitHub Actions without introducing a second security-test or evidence implementation.
-The resulting CI path remains based on the same regression and Evidence architecture:
+The current project implements this principle through deterministic ECU simulation, structured security tests, evidence generation, controlled regression, automated regression verification, and CI execution.
 
-```text
-Security Regression Tests
-        ↓
-EvidenceGenerator
-        ↓
-Evidence
-        ↓
-Evidence.to_json()
-        ↓
-CI Evidence JSON Files
-        ↓
-GitHub Actions Artifact
-```
-
-This provides a controlled basis for reproducible security regression testing and its automated execution in CI/CD while keeping generalized security finding management, historical comparison, and generalized lifecycle orchestration outside the current implementation.
+The methodology remains deliberately bounded to the implemented architecture and distinguishes current functionality from future lifecycle capabilities.

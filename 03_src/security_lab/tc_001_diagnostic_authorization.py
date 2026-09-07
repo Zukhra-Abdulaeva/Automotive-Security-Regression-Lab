@@ -1,6 +1,6 @@
 """TC-001 — Diagnostic Authorization security test."""
 
-from __future__ import annotations
+from typing import Any
 
 from security_lab.ecu_adapter import ECUAdapter
 from security_lab.ecu_simulator import (
