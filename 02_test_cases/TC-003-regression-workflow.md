@@ -19,6 +19,8 @@ TC-003 is therefore not a replacement for TC-001 or TC-002. It defines how an ex
 
 The current implementation uses the existing security-test architecture, Evidence Framework, and pytest-based regression suite for this workflow.
 
+---
+
 ## Scope
 
 The workflow applies to security findings that can be represented by the existing test architecture of the Automotive Security Regression Lab.
@@ -38,6 +40,8 @@ The implementation provides the technical foundation required for this workflow:
 
 The workflow does not introduce a separate finding-management or regression-management architecture.
 
+---
+
 ## Regression Principle
 
 A security finding becomes a regression test when the security property affected by the finding is expressed as an explicit, reproducible test condition.
@@ -54,6 +58,8 @@ The regression test defines at minimum:
 8. evidence for the executed test
 
 The regression test verifies the security property rather than merely verifying that the test itself can be executed.
+
+---
 
 ## Finding-to-Regression Workflow
 
@@ -98,6 +104,8 @@ Each regression test remains traceable to the security property established by t
 
 The current implementation demonstrates this workflow using the existing test architecture and regression scenarios.
 
+---
+
 ## Regression Test Case Definition
 
 A regression test case is represented by the existing `SecurityTestCase` model.
@@ -121,6 +129,8 @@ The `expected_status` defines the security response required for the test to pas
 
 The expected response represents the intended secure behavior. It is not derived from the current actual response of the target.
 
+---
+
 ## Preconditions
 
 Regression tests establish all security-relevant conditions required to reproduce the affected security property.
@@ -139,6 +149,8 @@ Only preconditions relevant to the security property under test are defined.
 
 Preconditions are explicit enough for the deterministic simulated target to reproduce the test condition.
 
+---
+
 ## Input Definition
 
 The regression test input reproduces the condition relevant to the original security finding.
@@ -148,6 +160,8 @@ For the current simulated ECU architecture, the input is represented by the requ
 The request is compatible with the target interface and preserves the security-relevant condition represented by the finding.
 
 Where the finding concerns invalid, unauthorized, unsupported, or otherwise security-sensitive input, the regression test preserves that condition explicitly.
+
+---
 
 ## Expected Security Behavior
 
@@ -180,6 +194,8 @@ Invalid parameter or blocked ECU state
 These properties are represented by the existing security-test architecture. They provide regression coverage where they are included in the implemented regression scenarios.
 
 The current regression implementation uses the diagnostic-authorization security property established by TC-001 as its implemented regression baseline.
+
+---
 
 ## Regression Execution
 
@@ -219,6 +235,8 @@ A matching result is a passed test.
 A non-matching result is a failed test and indicates that the expected security behavior was not observed.
 
 The regression test suite uses this execution and comparison model rather than introducing a separate result mechanism.
+
+---
 
 ## Evidence Generation
 
@@ -322,6 +340,8 @@ TC-002
 
 TC-003 does not change the security semantics of TC-001 or TC-002.
 
+---
+
 ## Determinism
 
 The regression workflow produces reproducible results under equivalent test conditions.
@@ -337,6 +357,8 @@ The regression test therefore avoids dependencies on:
 * manually interpreted response values
 
 The target abstraction keeps the regression workflow independent from the concrete ECU implementation.
+
+---
 
 ## Traceability
 
@@ -363,6 +385,8 @@ Finding
 The unique test identifier connects the regression test definition with its execution result and evidence.
 
 The current regression implementation also preserves the distinction between the security finding and the regression test itself. Finding management and regression execution remain separate concerns.
+
+---
 
 ## Regression Verification
 
@@ -395,6 +419,8 @@ The regression tests verify:
 ```
 
 The automated regression suite is executed independently from the documentation and therefore does not rely on the presence of this document for its result.
+
+---
 
 ## CI/CD Integration
 
@@ -430,6 +456,8 @@ Artifact Upload
 The CI/CD workflow executes the existing regression test implementation and preserves generated evidence as a workflow artifact.
 
 The CI/CD pipeline does not introduce a separate regression-test implementation. It executes and records the existing regression workflow.
+
+---
 
 ## Implementation Boundary
 
@@ -487,6 +515,8 @@ automatic regression reporting
 
 These functions require separate implementation and verification if they are introduced in the future.
 
+---
+
 ## Historical Phase 7 Boundary
 
 The original Phase-7 implementation established the finding-to-regression workflow using the existing security-test and evidence architecture.
@@ -512,6 +542,8 @@ Evidence
 The project subsequently extended this workflow with automated regression coverage and CI/CD execution.
 
 The historical Phase 7 boundary is retained to document the development history. It does not imply that the current repository still treats regression execution as a future capability.
+
+---
 
 ## Current Status
 

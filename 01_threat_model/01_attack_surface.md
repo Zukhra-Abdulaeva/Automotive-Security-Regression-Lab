@@ -8,6 +8,8 @@ The attack surface is intentionally limited to the interfaces and security-relev
 
 The document does not describe a real vehicle, real ECU, real diagnostic network, CAN bus, UDS communication, OEM infrastructure, or production environment.
 
+---
+
 ## Scope and Security Boundary
 
 The Automotive Security Regression Lab uses a fully simulated ECU.
@@ -44,6 +46,8 @@ Out of scope:
 - real diagnostic transport protocols
 
 The vulnerable ECU mode is a controlled simulation state used to reproduce a defined security-relevant deviation. It must not be interpreted as evidence of a vulnerability in a real vehicle or ECU.
+
+---
 
 ## Modeled Target
 
@@ -82,6 +86,8 @@ UNSUPPORTED_OPERATION
 REQUEST_REJECTED
 ```
 
+---
+
 ## Attack Surface Overview
 
 The current modeled attack surface consists of the following security-relevant input and control dimensions:
@@ -95,6 +101,8 @@ The current modeled attack surface consists of the following security-relevant i
 | Authorization state | `true` / `false` | Determines whether protected access is permitted | TC-001, TC-003 |
 | ECU operational state | `READY` / `BLOCKED` | Restricts operation execution | TC-002, TC-003 |
 | ECU security mode | `SECURE` / `VULNERABLE` | Controls the intentionally modeled pre-fix and secure lifecycle states | TC-001, TC-003 |
+
+---
 
 ## Request Entry Point
 
@@ -140,6 +148,8 @@ Security mode / authorization decision
 
 This sequence is important for the end-to-end assessment because a security-relevant result must be interpreted in the context of the actual control flow.
 
+---
+
 ## Protected Operation
 
 `PROTECTED_OPERATION` is the central security-relevant operation in the current assessment.
@@ -169,6 +179,8 @@ ACCESS_GRANTED
 ```
 
 The last condition is the security-relevant deviation used to demonstrate the finding and subsequent regression workflow.
+
+---
 
 ## Authorization Attack Surface
 
@@ -205,6 +217,8 @@ TC-001 explicitly tests both conditions and additionally exercises the controlle
 
 The unauthorized vulnerable condition is therefore not an assumed finding. It is a modeled attack condition that produces a directly observable expected-versus-actual deviation.
 
+---
+
 ## Security Mode Attack Surface
 
 The simulator supports two explicit security modes:
@@ -235,6 +249,8 @@ Authorization valid?
 This control-flow ordering is the direct technical basis for the TC-001 vulnerable result.
 
 The `VULNERABLE` mode is therefore part of the modeled attack surface for lifecycle testing, but it is not a claim that an equivalent defect exists in a real ECU.
+
+---
 
 ## Message-Validation Attack Surface
 
@@ -279,6 +295,8 @@ Boolean values are explicitly rejected even though Python treats `bool` as a sub
 
 These validation controls are part of the attack surface because malformed, unsupported, or invalid requests must not be allowed to bypass the intended request-processing constraints.
 
+---
+
 ## ECU State Attack Surface
 
 The simulator models two ECU operational states:
@@ -303,6 +321,8 @@ The state check occurs before the security-mode branch.
 Therefore, within the current implementation, `BLOCKED` also prevents the controlled vulnerable-mode grant for the tested request condition.
 
 This distinction is relevant to the assessment because authorization behavior and ECU-state restrictions are separate controls.
+
+---
 
 ## Attack Surface by Test Case
 
@@ -384,6 +404,8 @@ Regression verification
 
 TC-003 does not replace TC-001 as the original security-test definition.
 
+---
+
 ## Primary Threat Actor
 
 The modeled threat actor is:
@@ -403,6 +425,8 @@ Authorization = false
 +
 Request = PROTECTED_OPERATION
 ```
+
+---
 
 ## Attack Hypothesis
 
@@ -430,6 +454,8 @@ ACCESS_GRANTED
 ```
 
 This expected-versus-actual difference provides the basis for the security finding documented later in the end-to-end assessment.
+
+---
 
 ## Security-Relevant Trust Boundary
 
@@ -461,6 +487,8 @@ The test architecture deliberately separates:
 - evidence generation
 
 The security test therefore does not directly modify the simulator's internal result.
+
+---
 
 ## Attack Surface and Evidence Flow
 
@@ -507,6 +535,8 @@ SEC-001
 
 The evidence result is derived from expected-versus-actual comparison and is validated by the Evidence Framework.
 
+---
+
 ## Attack Surface Assessment
 
 The current modeled attack surface supports the following assessment statements:
@@ -525,6 +555,8 @@ The current modeled attack surface supports the following assessment statements:
 | Regression baseline | Established from TC-001 |
 | Real automotive interfaces | Out of scope |
 
+---
+
 ## Traceability
 
 | Attack Surface Element | Requirement / Property | Test | Evidence / Finding | Regression |
@@ -536,6 +568,8 @@ The current modeled attack surface supports the following assessment statements:
 | Operation selector | Unsupported operation rejected | TC-002 | TC-002 evidence | TC-003 coverage |
 | Parameter value | Valid range enforced | TC-002 | TC-002 evidence | TC-003 coverage |
 | ECU state | Blocked state rejects operation | TC-002 | TC-002 evidence | TC-003 coverage |
+
+---
 
 ## Limitations
 
@@ -561,6 +595,8 @@ It does not establish coverage of:
 
 The current attack surface therefore represents the implemented simulation and its defined security-test scenarios, not a complete automotive ECU attack-surface analysis.
 
+---
+
 ## Evidence Classification
 
 The following classification applies to statements in this document:
@@ -575,6 +611,8 @@ The following classification applies to statements in this document:
 | Unverified execution claim | `[UNVERIFIED]` |
 
 No real-vehicle security claim is derived from this attack-surface model.
+
+---
 
 ## Relationship to the End-to-End Assessment Case
 
@@ -612,10 +650,12 @@ TC-002 provides supporting validation coverage and demonstrates that message-val
 
 TC-003 provides the regression layer for the established TC-001 security property.
 
+---
+
 ## Verification Status
 
-**Document status:** Drafted for Phase 11 End-to-End Assessment.
+**Document status:** Phase 11 End-to-End Assessment.
 
-**Repository status:** This document content has been prepared from the currently supplied project sources. Repository file creation and project-status update are separate actions and are not claimed here.
+**Repository status:** This document content has been prepared from the currently supplied project sources.
 
-**Technical boundary:** The document describes only the currently modeled attack surface supported by the supplied simulator, test cases, regression tests, and project architecture.
+**Technical boundary:** The document describes the currently modeled attack surface supported by the supplied simulator, test cases, regression tests, and project architecture.
