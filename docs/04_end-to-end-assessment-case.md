@@ -72,6 +72,8 @@ TC-003 turns the established TC-001 security property into an automated regressi
 
 The complete case is limited to the implemented simulation. It is not a real vehicle penetration test, real ECU assessment, OEM assessment, or production-system security assessment.
 
+---
+
 ## 2. Scope
 
 ### 2.1 In Scope
@@ -145,6 +147,8 @@ Evidence
 ```
 
 No external automotive system is part of the execution boundary.
+
+---
 
 ## 3. System / ECU Architecture
 
@@ -260,6 +264,8 @@ The exact order matters for the primary finding.
 
 For the vulnerable TC-001 request, there is no `parameters` field, so the parameter-validation branch does not reject the request. The ECU remains in the default `READY` state. The vulnerable-mode branch is then reached before the authorization check.
 
+---
+
 ## 4. Security Requirements
 
 ### 4.1 Primary Security Requirement
@@ -321,6 +327,8 @@ The out-of-range examples are:
 ```
 
 TC-002 provides the dedicated coverage for these validation properties.
+
+---
 
 ## 5. Threat Model
 
@@ -388,6 +396,8 @@ VULNERABLE mode
 ACCESS_GRANTED
 ```
 
+---
+
 ## 6. Attack Surface
 
 The detailed attack-surface model is maintained in:
@@ -411,6 +421,8 @@ For this end-to-end case, the relevant attack-surface elements are:
 The primary attack surface is the protected-operation authorization decision.
 
 The assessment does not infer additional attack surfaces that are not represented by the implementation.
+
+---
 
 ## 7. Attack Hypothesis
 
@@ -438,6 +450,8 @@ ACCESS_GRANTED
 ```
 
 The hypothesis is therefore evaluated by comparing the actual simulator response with the unchanged security requirement.
+
+---
 
 ## 8. Security Test
 
@@ -528,6 +542,8 @@ Automated regression
 ```
 
 TC-003 does not replace TC-001 as the original security-test definition.
+
+---
 
 ## 9. Test Execution
 
@@ -635,6 +651,8 @@ Actual   = ACCESS_DENIED
 Result   = PASS
 ```
 
+---
+
 ## 10. Evidence
 
 ### 10.1 Evidence Model
@@ -740,6 +758,8 @@ to_json()
 
 TC-003 verifies that regression evidence represents the executed retest result.
 
+---
+
 ## 11. Security Finding
 
 ### 11.1 Finding ID
@@ -791,6 +811,8 @@ No statement is made about impact on a real vehicle, ECU, diagnostic protocol, o
 A formal CVSS score is not claimed because the current project implementation does not establish a CVSS scoring workflow for this assessment case.
 
 The finding is qualitatively security-relevant because it violates the modeled authorization requirement.
+
+---
 
 ## 12. Vulnerability Assessment
 
@@ -857,6 +879,8 @@ Real diagnostic communication
 Real-world exploitability
 Production security
 ```
+
+---
 
 ## 13. Root Cause Analysis
 
@@ -944,6 +968,8 @@ The vulnerable behavior is consequently intentional within the simulation archit
 
 This distinction is important: the finding represents a controlled simulated security deviation, not an accidental claim about production ECU code.
 
+---
+
 ## 14. Recommended Fix
 
 ### 14.1 Security Objective
@@ -987,6 +1013,8 @@ ACCESS_DENIED
 ```
 
 The test must not be changed to expect `ACCESS_GRANTED`.
+
+---
 
 ## 15. Implemented Fix
 
@@ -1043,6 +1071,8 @@ The supplied implementation supports verification that the secure mode denies un
 
 It does not establish that a separate production codebase has been patched.
 
+---
+
 ## 16. Retest
 
 ### 16.1 Retest Condition
@@ -1093,6 +1123,8 @@ Result        = PASS
 ```
 
 This ensures that the security control does not simply block the protected operation for all users.
+
+---
 
 ## 17. Regression Test
 
@@ -1178,6 +1210,8 @@ TC-001 → establishes the security property
 
 TC-003 → automates regression verification of that property
 ```
+
+---
 
 ## 18. Concrete End-to-End Regression Example
 
@@ -1371,6 +1405,8 @@ CI/CD Execution
 
 This example represents the current implemented regression path without introducing a separate regression architecture or a second implementation of the TC-001 security property.
 
+---
+
 ## 19. Automated Test Results
 
 ### 19.1 Test Inventory
@@ -1441,6 +1477,8 @@ pytest -q 04_tests/test_tc002_message_validation.py
 ```
 
 The suite covers invalid input, unsupported operation, out-of-range parameter behavior, blocked state, and valid boundary values.
+
+---
 
 ## 20. CI/CD Execution
 
@@ -1539,6 +1577,8 @@ A separate pull-request execution is not claimed as independently verified.
 
 The Node.js 20 deprecation warning documented for GitHub Actions components did not prevent the recorded successful security-regression workflow. It is not a security-test result.
 
+---
+
 ## 21. Conclusion
 
 The Phase-11 end-to-end case demonstrates a complete security-testing lifecycle for one concrete security property of the simulated ECU.
@@ -1583,7 +1623,9 @@ The assessment establishes a reproducible and traceable relationship between sec
 
 The conclusion is limited to the implemented simulation and documented project execution results. It does not constitute a real automotive ECU or vehicle security assessment.
 
-# Section A — End-to-End Traceability
+---
+
+## Section A — End-to-End Traceability
 
 | Requirement / Property | Attack Surface | Test | Evidence | Finding | Fix / Secure State | Retest | Regression | CI/CD |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1595,7 +1637,7 @@ The conclusion is limited to the implemented simulation and documented project e
 | Parameter range enforced | Parameter value | TC-002 | Structured evidence | None established | Existing validation | Same expected behavior | TC-003 coverage | Automated regression |
 | Blocked state rejects operation | ECU state | TC-002 | Structured evidence | None established | Existing state control | Same expected behavior | TC-003 coverage | Automated regression |
 
-# Section B — Target / Actual Verification
+##  Section B — Target / Actual Verification
 
 | Requirement | Target | Actual | Verification Status |
 | --- | --- | --- | --- |
@@ -1611,7 +1653,7 @@ The conclusion is limited to the implemented simulation and documented project e
 | CI publishes regression evidence | Regression execution produces evidence artifact | `security-regression-evidence` documented | Verified by supplied CI documentation |
 | Real automotive security is not claimed | Simulation must remain clearly bounded | Scope explicitly excludes real vehicles/ECUs/OEM systems | Verified by document scope |
 
-# Section C — Quality Gate
+##  Section C — Quality Gate
 
 | Quality Criterion | Status |
 | --- | --- |
@@ -1631,7 +1673,7 @@ The conclusion is limited to the implemented simulation and documented project e
 | Repository file/commit status falsely claimed | PASS |
 | Repository-level Phase-11 completion | NOT VERIFIED |
 
-# Section D — Phase Status
+## Section D — Phase Status
 
 The document content for Phase 11 has been prepared.
 
@@ -1655,13 +1697,15 @@ Verification Status:
 PARTIALLY VERIFIED
 ```
 
-# Section E — Proposed Git Commit Message
+##  Section E — Proposed Git Commit Message
 
 ```text
 docs: add phase 11 end-to-end security assessment case
 ```
 
-# Verification Summary
+---
+
+## Verification Summary
 
 The end-to-end assessment case is technically aligned with the supplied implementation and project documentation.
 

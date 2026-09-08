@@ -1,4 +1,4 @@
-"""Phase 9 — Security regression tests for established security properties."""
+"""Security regression tests for established security properties."""
 
 from pathlib import Path
 
