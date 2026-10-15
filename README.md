@@ -195,8 +195,7 @@ automotive-security-regression-lab/
 | Document                                | Purpose                                                                  |
 | --------------------------------------- | ------------------------------------------------------------------------ |
 | `README.md`                             | Concise project overview and entry point                                 |
-| `project.md`                            | Detailed implementation, verification, CI/CD status, and project history |
-| `PROJECT_STATUS.md`                     | Detailed implementation and verification status                          |
+| `PROJECT_STATUS.md`                     | Detailed implementation, verification, CI/CD status, and project history |
 | `ARCHITECTURE_DECISIONS.md`             | Architectural decisions and rationale                                    |
 | `docs/01_architecture.md`               | Detailed architecture                                                    |
 | `docs/02_methodology.md`                | Security-testing methodology                                             |
