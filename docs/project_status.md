@@ -16,7 +16,7 @@ From Security Finding to Reproducible Automotive Security Tests
 
 **Status:** Implemented and verified
 
-The End-to-End Assessment Case is documented in: docs/04_end-to-end-assessment-case.md
+The End-to-End Assessment Case is documented in: docs/end-to-end-assessment-case.md
 
 The assessment case traces the established engineering chain from security requirement through threat model, attack hypothesis, security test, evidence, security finding, root cause analysis, fix, retest, regression test, automated verification, and CI/CD execution.
 
@@ -1326,7 +1326,7 @@ Phase 11 consolidates the existing project implementation into a concrete end-to
 The assessment case is:
 
 ```text
-docs/04_end-to-end-assessment-case.md
+docs/end-to-end-assessment-case.md
 ```
 
 The corresponding modeled attack surface is:
@@ -1554,12 +1554,14 @@ The professional documentation set includes:
 
 ```text
 README.md
-PROJECT_STATUS.md
-ARCHITECTURE_DECISIONS.md
-docs/01_architecture.md
-docs/02_methodology.md
-docs/03_evidence-format.md
-docs/04_end-to-end-assessment-case.md
+RECRUITER_REVIEW.md
+docs/architecture_decisions.md
+docs/architecture.md
+docs/end-to-end-assessment-case.md
+docs/environment-setup.md
+docs/evidence-format.md
+docs/methodology.md
+docs/project_status.md
 01_threat_model/01_attack_surface.md
 02_test_cases/TC-001-diagnostic-authorization.md
 02_test_cases/TC-002-message-validation.md
@@ -2156,17 +2158,22 @@ The following capabilities are not implemented in the current phase:
 
 ## Documentation References
 
-| Document | Purpose |
-| -------------------------------------------------- | ------------------------------------------------------------- |
-| `README.md` | Project overview, scope, architecture, and development phases |
-| `PROJECT_STATUS.md` | Current implementation and verification status |
-| `ARCHITECTURE_DECISIONS.md` | Architectural decisions and rationale |
-| `docs/01_architecture.md` | Detailed architecture |
-| `docs/02_methodology.md` | Security-testing methodology |
-| `docs/03_evidence-format.md` | Evidence Framework and evidence format |
-| `docs/04_end-to-end-assessment-case.md` | End-to-end assessment structure |
-| `01_threat_model/01_attack_surface.md` | Modeled attack surface |
-| `02_test_cases/TC-001-diagnostic-authorization.md` | TC-001 security-test specification |
-| `02_test_cases/TC-002-message-validation.md` | TC-002 security-test specification |
+| Document                                           | Purpose                                                                                |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `README.md`                                        | Project overview, scope, architecture and development workflow                         |
+| `RECRUITER_REVIEW.md`                              | Recruiter perspective, interview preparation, project strengths and interview pitches  |
+| `docs/project_status.md`                           | Implementation status, development phases, verification results and quality gates      |
+| `docs/architecture_decisions.md`                   | Architectural decisions, rationale and design constraints                              |
+| `docs/architecture.md`                             | Detailed system architecture and component responsibilities                            |
+| `docs/environment-setup.md`                        | Local development environment setup and test execution instructions                    |
+| `docs/evidence-format.md`                          | Evidence model, validation rules and JSON format                                       |
+| `docs/methodology.md`                              | Security-testing methodology and assessment lifecycle                                  |
+| `docs/end-to-end-assessment-case.md`               | End-to-end security assessment and traceability case                                   |
+| `01_threat_model/01_attack_surface.md`             | Modeled attack surface, security boundaries and threat hypotheses                      |
+| `02_test_cases/TC-001-diagnostic-authorization.md` | Diagnostic authorization security test specification                                   |
+| `02_test_cases/TC-002-message-validation.md`       | Message validation security test specification                                         |
+| `02_test_cases/TC-003-regression-workflow.md`      | Regression workflow and finding-to-regression traceability                             |
+| `05_examples/sample_finding_SEC-001.md`            | Example finding for the diagnostic authorization deviation                             |
+| `05_examples/sample_finding_SEC-002.md`            | Example finding for the message-validation assessment                                  |
 
 ---

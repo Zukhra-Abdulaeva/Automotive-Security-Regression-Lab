@@ -6,7 +6,7 @@
 
 The **Automotive Security Regression Lab** is a local, deterministic simulation environment for developing and demonstrating an automotive cybersecurity testing workflow.
 
-The project demonstrates how a security requirement can be translated into a security test, executed against a simulated ECU, evaluated against expected behavior, captured as structured evidence, documented as a security finding, and verified through regression testing.
+The project demonstrates how a security requirement can be translated into a security test, executed against a simulated ECU, evaluated against expected behavior, captured as structured evidence, documented as a security finding and verified through regression testing.
 
 The laboratory does not connect to real vehicles, ECUs, vehicle networks, OEM infrastructure, or production systems. No real CAN or UDS communication is implemented.
 
@@ -40,7 +40,7 @@ Automated Regression Verification
 CI/CD
 ```
 
-The long-term workflow additionally includes threat modeling, attack hypotheses, root-cause analysis, remediation, and regression testing.
+The long-term workflow additionally includes threat modeling, attack hypotheses, root-cause analysis, remediation and regression testing.
 
 ---
 
@@ -137,7 +137,7 @@ security-regression-evidence
 
 artifact.
 
-Detailed verification results, CI history, implementation status, test distribution, and technical details are maintained in [`project.md`](project.md).
+Detailed verification results, CI history, implementation status, test distribution and technical details are maintained in [`project.md`](project.md).
 
 ---
 
@@ -147,17 +147,19 @@ Detailed verification results, CI history, implementation status, test distribut
 automotive-security-regression-lab/
 
 ├── README.md
-├── project.md
-├── PROJECT_STATUS.md
-├── ARCHITECTURE_DECISIONS.md
 ├── RECRUITER_REVIEW.md
 ├── pyproject.toml
+├── .gitattributes
+├── .gitignore
 │
 ├── docs/
-│   ├── 01_architecture.md
-│   ├── 02_methodology.md
-│   ├── 03_evidence-format.md
-│   └── 04_end-to-end-assessment-case.md
+│   ├── docs/architecture_decisions.md
+│   ├── docs/architecture.md
+│   ├── docs/environment-setup.md
+│   ├── docs/evidence-format.md
+│   ├── docs/methodology.md
+│   ├── docs/project_status.md
+│   └── docs/end-to-end-assessment-case.md
 │
 ├── 01_threat_model/
 │   └── 01_attack_surface.md
@@ -192,17 +194,45 @@ automotive-security-regression-lab/
 
 # Documentation
 
-| Document                                | Purpose                                                                  |
-| --------------------------------------- | ------------------------------------------------------------------------ |
-| `README.md`                             | Concise project overview and entry point                                 |
-| `PROJECT_STATUS.md`                     | Detailed implementation, verification, CI/CD status, and project history |
-| `ARCHITECTURE_DECISIONS.md`             | Architectural decisions and rationale                                    |
-| `docs/01_architecture.md`               | Detailed architecture                                                    |
-| `docs/02_methodology.md`                | Security-testing methodology                                             |
-| `docs/03_evidence-format.md`            | Evidence Framework and evidence format                                   |
-| `docs/04_end-to-end-assessment-case.md` | End-to-end assessment case and traceability                              |
-| `02_test_cases/`                        | Detailed security-test specifications                                    |
-| `01_threat_model/`                      | Modeled attack-surface information                                       |
+## Main project documentation
+
+| Markdown file                    | Purpose                                                                                                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `README.md`                      | Project overview, scope, architecture, security-testing workflow, current test coverage, technology stack, verification summary and repository structure                         |
+| `RECRUITER_REVIEW.md`            | A recruiter- and interview-focused review of the project, including strengths, credibility, technical interview questions, an elevator pitch and a longer interview explanation  |
+| `docs/project_status.md`         | Detailed project status, implementation phases, test results, CI/CD verification, deliverables, quality gates and links to supporting documentation                              |
+
+## Technical documentation
+
+| Markdown file                        | Purpose                                                                                                                                                                                                                           |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/architecture_decisions.md`     | Architecture Decision Records (ADRs) documenting key design choices, their rationale, consequences and the boundaries of the simulated security-testing environment                                                               |
+| `docs/architecture.md`               | Detailed system architecture, component responsibilities, test-execution flow, request validation, ECU simulation modes, evidence integration, regression architecture, CI/CD and architectural boundaries                        |
+| `docs/end-to-end-assessment-case.md` | End-to-end assessment case connecting security requirements, threat modeling, attack hypotheses, test cases, execution results, evidence, findings, root cause, fixes, retesting, regression verification and CI/CD               |
+| `docs/environment-setup.md`          | Local development setup instructions, including repository cloning, Python environment preparation, dependency installation and test execution                                                                                    |
+| `docs/evidence-format.md`            | Defines the evidence data model, required fields, timestamps, PASS/FAIL semantics, evidence generation and validation, JSON serialization and the relationship between evidence and the test lifecycle                            |
+| `docs/methodology.md`                | Security-testing methodology from defining security requirements and threat models through attack-surface analysis, test execution, expected-versus-actual evaluation, evidence, findings, remediation, retesting and regression  |
+
+## Threat model and attack surface
+
+| Markdown file                          | Purpose                                                                                                                                                                     |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `01_threat_model/01_attack_surface.md` | Defines the simulated ECU's attack surface, security boundaries, modeled inputs and states, threat actor, attack hypotheses and traceability to TC-001, TC-002 and TC-003   |
+
+## Security test case specifications
+
+| Markdown file                                      | Purpose                                                                                                                                                                                                                          |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `02_test_cases/TC-001-diagnostic-authorization.md` | Specifies TC-001 for diagnostic authorization, including the security requirement, threat model, attack hypothesis, test setup, expected and actual behavior, evidence, root cause, remediation, retest and regression coverage  |
+| `02_test_cases/TC-002-message-validation.md`       | Specifies TC-002 for message validation, covering malformed input, unsupported operations, boundary values, unexpected ECU states, expected responses, evidence, remediation, retest and regression considerations               |
+| `02_test_cases/TC-003-regression-workflow.md`      | Defines TC-003's finding-to-regression workflow, regression inputs and expected behavior, evidence generation, result interpretation, traceability, determinism and CI/CD integration boundaries                                 |
+
+## Example security findings
+
+| Markdown file                           | Purpose                                                                                                                                                                                                                                        |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `05_examples/sample_finding_SEC-001.md` | Example security finding for the diagnostic-authorization deviation, documenting the security requirement, reproduction steps, expected versus actual behavior, evidence, impact, root cause, recommendation, fix, retest and regression test  |
+| `05_examples/sample_finding_SEC-002.md` | A second structured example finding associated with the message-validation assessment, documenting the scenario, evidence, assessment, impact, root cause, recommendations and retest/regression information                                   |
 
 ---
 
@@ -222,7 +252,7 @@ Python 3.12
 pytest>=9,<10
 ```
 
-The laboratory is locally executable, deterministic, hardware-independent, network-independent, and reproducible.
+The laboratory is locally executable, deterministic, hardware-independent, network-independent and reproducible.
 
 ---
 
