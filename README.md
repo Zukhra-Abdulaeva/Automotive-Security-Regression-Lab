@@ -137,7 +137,7 @@ security-regression-evidence
 
 artifact.
 
-Detailed verification results, CI history, implementation status, test distribution and technical details are maintained in [`project.md`](project.md).
+Detailed verification results, CI history, implementation status, test distribution and technical details are maintained in [`project_status.md`](docs/project_status.md).
 
 ---
 
