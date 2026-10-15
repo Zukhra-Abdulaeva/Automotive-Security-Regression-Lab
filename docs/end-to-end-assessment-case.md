@@ -403,7 +403,7 @@ ACCESS_GRANTED
 The detailed attack-surface model is maintained in:
 
 ```text
-01_threat_model/01_attack_surface.md
+01_threat_model/attack_surface.md
 ```
 
 For this end-to-end case, the relevant attack-surface elements are:

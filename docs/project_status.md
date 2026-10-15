@@ -4,9 +4,7 @@
 
 **Automotive Security Regression Lab**
 
-**Project Vision:**
-
-From Security Finding to Reproducible Automotive Security Tests
+**Project Vision:**   From Security Finding to Reproducible Automotive Security Tests
 
 ---
 
@@ -1332,7 +1330,7 @@ docs/end-to-end-assessment-case.md
 The corresponding modeled attack surface is:
 
 ```text
-01_threat_model/01_attack_surface.md
+01_threat_model/attack_surface.md
 ```
 
 The assessment case is based on the existing TC-001, TC-002, and TC-003 implementation and does not introduce an independent Security Test implementation.
@@ -1562,7 +1560,7 @@ docs/environment-setup.md
 docs/evidence-format.md
 docs/methodology.md
 docs/project_status.md
-01_threat_model/01_attack_surface.md
+01_threat_model/attack_surface.md
 02_test_cases/TC-001-diagnostic-authorization.md
 02_test_cases/TC-002-message-validation.md
 05_examples/sample_finding_SEC-001.md
@@ -2169,7 +2167,7 @@ The following capabilities are not implemented in the current phase:
 | `docs/evidence-format.md`                          | Evidence model, validation rules and JSON format                                       |
 | `docs/methodology.md`                              | Security-testing methodology and assessment lifecycle                                  |
 | `docs/end-to-end-assessment-case.md`               | End-to-end security assessment and traceability case                                   |
-| `01_threat_model/01_attack_surface.md`             | Modeled attack surface, security boundaries and threat hypotheses                      |
+| `01_threat_model/attack_surface.md`                | Modeled attack surface, security boundaries and threat hypotheses                      |
 | `02_test_cases/TC-001-diagnostic-authorization.md` | Diagnostic authorization security test specification                                   |
 | `02_test_cases/TC-002-message-validation.md`       | Message validation security test specification                                         |
 | `02_test_cases/TC-003-regression-workflow.md`      | Regression workflow and finding-to-regression traceability                             |

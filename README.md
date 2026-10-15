@@ -162,7 +162,7 @@ automotive-security-regression-lab/
 │   └── docs/end-to-end-assessment-case.md
 │
 ├── 01_threat_model/
-│   └── 01_attack_surface.md
+│   └── attack_surface.md
 │
 ├── 02_test_cases/
 │   ├── TC-001-diagnostic-authorization.md
@@ -215,9 +215,9 @@ automotive-security-regression-lab/
 
 ## Threat model and attack surface
 
-| Markdown file                          | Purpose                                                                                                                                                                     |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `01_threat_model/01_attack_surface.md` | Defines the simulated ECU's attack surface, security boundaries, modeled inputs and states, threat actor, attack hypotheses and traceability to TC-001, TC-002 and TC-003   |
+| Markdown file                       | Purpose                                                                                                                                                                     |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `01_threat_model/attack_surface.md` | Defines the simulated ECU's attack surface, security boundaries, modeled inputs and states, threat actor, attack hypotheses and traceability to TC-001, TC-002 and TC-003   |
 
 ## Security test case specifications
 
